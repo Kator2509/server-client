@@ -8,11 +8,10 @@ public class Server
 {
     public void onInitialize()
     {
-        boolean isRunning = true;
         try(ServerSocket server = new ServerSocket(25565)) {
 
             DataInputStream in = null;
-            while (isRunning)
+            while (true)
             {
                 Thread.sleep(1800);
                 Socket client = server.accept();
@@ -23,9 +22,6 @@ public class Server
                 if (client.isConnected()) {
                     String message = in != null ? in.readUTF() : null;
                     System.out.println("Entry ip-address: " + message);
-                    if (Objects.equals(message, "shutdown")) {
-                        isRunning = false;
-                    }
                 }
             }
 
