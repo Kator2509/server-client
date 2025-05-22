@@ -12,10 +12,10 @@ public class Server
         try(ServerSocket server = new ServerSocket(25565)) {
 
             DataInputStream in = null;
-            //loop
+            //Loop
             while (true)
             {
-                //Cleap 30 sec. After continue.
+                //Sleep 30 sec. After continue.
                 Thread.sleep(1800);
                 //Accepting connection.
                 Socket client = server.accept();
