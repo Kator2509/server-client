@@ -6,6 +6,13 @@ import java.util.Objects;
 
 public class Server
 {
+    /*
+    * If you want close that stream. You need a creation new field and set
+    *  private boolean setStop = false;
+    *  > client.setSoTimeout(100)
+    *  And chose your setStop on true if you want to close that stream.
+    *  Your stream - Server is stop working and closed.
+    */
     public void onInitialize()
     {
         //Trying to create a server socket.
