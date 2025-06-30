@@ -15,12 +15,14 @@ public class Server
 
     public static boolean Run = false;
     public static CommandDispatcher dispatcher;
+    public static Thread server;
+    public static final String prefix = "[MainServer]: ";
 
     public static void main(String[] args)
     {
-        ServerExecute.run();
         dispatcher = new CommandDispatcher();
         registerModules.registerCommands(dispatcher);
+        ServerExecute.run();
         Scanner entry = new Scanner(System.in);
 
         while(Run)
@@ -60,24 +62,53 @@ public class Server
         }
     }
 
+    public static class callReboot extends Command
+    {
+
+        public callReboot(String name) {
+            super(name);
+        }
+
+        @Override
+        public void run() {
+            if(server.isAlive())
+            {
+                System.out.println("Alive");
+                server.start();
+            }
+            else
+            {
+                System.out.println(prefix + "Reboot server core.");
+                ServerExecute.callReboot();
+            }
+        }
+    }
+
     private static class registerModules
     {
         private static void registerCommands(CommandDispatcher dispatcher)
         {
             dispatcher.register(new callShutDown("shutdown"));
+            dispatcher.register(new callReboot("reboot"));
         }
     }
 
     private static class ServerExecute
     {
+        private static boolean reboot = false;
+        public static void callReboot()
+        {
+            reboot = true;
+        }
+
         public static void run()
         {
-            Thread server = new Thread(() -> {
+            server = new Thread(() -> {
                 try(ServerSocket server1 = new ServerSocket(25565)) {
                     Run = true;
                     DataInputStream in = null;
 
-                    while(Run)
+                    while(Run && !reboot)
                     {
                         server1.setSoTimeout(120);
                         Socket client = server1.accept();
@@ -92,13 +123,21 @@ public class Server
                     }
                 } catch (SocketTimeoutException ignore) {}
                 catch (IOException e) {
-                    System.out.println("При запуске сервера произошла ошибка.");
+                    System.out.println(prefix + "Server stopped as crash. Trying to reboot server.");
+                    dispatcher.executeCommand("reboot", null);
                     throw new RuntimeException(e);
+                }
+                reboot = false;
+                if(!server.isAlive()) {
+                    System.out.println(prefix + "Server stopped.");
+                    if (reboot) {
+                        run();
+                    }
                 }
             });
 
             server.start();
-            System.out.println("Server is start. Await a command: ");
+            System.out.println(prefix + "Server is start. Await a command: ");
         }
     }
 }
