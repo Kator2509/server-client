@@ -14,6 +14,7 @@ public class CommandDispatcher
     public CommandDispatcher(Map<String, Command> commandMap)
     {
         this.commandMap = commandMap;
+
     }
 
     public void register(Command command)

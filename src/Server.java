@@ -76,6 +76,7 @@ public class Server
                 try(ServerSocket server1 = new ServerSocket(25565)) {
                     Run = true;
                     DataInputStream in = null;
+
                     while(Run)
                     {
                         server1.setSoTimeout(120);
