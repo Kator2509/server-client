@@ -3,3 +3,9 @@
 
 
 При желании можно адаптировать как простой мессенджер между клиентом и сервером при использовании объектов DataOutputStream и DataInputStream.
+
+Присутствует внутренний CommandDispatcher. 
+Можно производить регистрации команд и вызов их обработки. Данная схема позволяет общаться между процессом сервера и пользователем.
+
+> CommandDispatcher commandMap = new CommandDispatcher;
+> commandMap.executeCommand(command, arguments);
