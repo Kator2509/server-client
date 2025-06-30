@@ -7,5 +7,5 @@
 Присутствует внутренний CommandDispatcher. 
 Можно производить регистрации команд и вызов их обработки. Данная схема позволяет общаться между процессом сервера и пользователем.
 
-> CommandDispatcher commandMap = new CommandDispatcher;
+> CommandDispatcher commandMap = new CommandDispatcher;\n
 > commandMap.executeCommand(command, arguments);
