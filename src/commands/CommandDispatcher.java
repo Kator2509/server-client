@@ -35,7 +35,7 @@ public class CommandDispatcher
             System.out.println(prefix + "Execute command - " + command.getName());
             return true;
         }
-        System.out.println(prefix + "Can't execute command - " + name);
+        System.out.println(prefix + "Can't execute command - " + name + ". Don't found the command.");
         return false;
     }
 

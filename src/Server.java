@@ -124,6 +124,8 @@ public class Server
                 } catch (SocketTimeoutException ignore) {}
                 catch (IOException e) {
                     System.out.println(prefix + "Server stopped as crash. Trying to reboot server.");
+                    System.out.println(prefix + "If you see that cause one more. Please report as that.");
+                    System.out.println(prefix + "And call emergency stop the server.");
                     dispatcher.executeCommand("reboot", null);
                     throw new RuntimeException(e);
                 }
