@@ -3,6 +3,7 @@ package org.servera;
 import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
 import org.servera.commands.PermissionCMD;
+import org.servera.config.Configuration;
 import org.servera.inheritance.UserManager;
 
 import java.io.DataInputStream;
@@ -68,6 +69,21 @@ public class Server
         }
     }
 
+    private static class registerModules
+    {
+        private static void registerCommands(CommandDispatcher dispatcher)
+        {
+            dispatcher.register(new callShutDown("shutdown"));
+            dispatcher.register(new callReboot("reboot"));
+            dispatcher.register(new PermissionCMD("permission"));
+        }
+
+        private static void registerUserManager(UserManager manager)
+        {
+            manager.createUser("TEST");
+        }
+    }
+
     private static class callShutDown extends Command
     {
         public callShutDown(String name) {
@@ -85,11 +101,9 @@ public class Server
 
     private static class callReboot extends Command
     {
-
         public callReboot(String name) {
             super(name);
         }
-
         @Override
         public void run() {
             if(serverThread.isAlive())
@@ -101,21 +115,6 @@ public class Server
                 System.out.println(prefix + "Reboot server core.");
                 ServerExecute.callReboot();
             }
-        }
-    }
-
-    private static class registerModules
-    {
-        private static void registerCommands(CommandDispatcher dispatcher)
-        {
-            dispatcher.register(new callShutDown("shutdown"));
-            dispatcher.register(new callReboot("reboot"));
-            dispatcher.register(new PermissionCMD("permission"));
-        }
-
-        private static void registerUserManager(UserManager manager)
-        {
-            manager.createUser("TEST");
         }
     }
 
