@@ -1,7 +1,7 @@
-package commands;
+package org.servera.commands;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 
 public class CommandDispatcher
@@ -25,7 +25,7 @@ public class CommandDispatcher
         }
     }
 
-    public boolean executeCommand(String name, List<String> args)
+    public boolean executeCommand(String name, LinkedList<String> args)
     {
         if(commandMap.containsKey(name))
         {

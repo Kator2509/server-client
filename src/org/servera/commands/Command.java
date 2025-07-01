@@ -1,10 +1,10 @@
-package commands;
+package org.servera.commands;
 
-import java.util.List;
+import java.util.LinkedList;
 
 public abstract class Command {
     private final String name;
-    private List<String> arguments;
+    private LinkedList<String> arguments;
 
     public Command(String name)
     {
@@ -14,7 +14,7 @@ public abstract class Command {
 
     public abstract void run();
 
-    public void setArguments(List<String> arguments)
+    public void setArguments(LinkedList<String> arguments)
     {
         if(!(arguments == null)) {
             this.arguments = arguments;
@@ -25,7 +25,7 @@ public abstract class Command {
         return this.name;
     }
 
-    public List<String> getArguments() {
+    public LinkedList<String> getArguments() {
         return this.arguments;
     }
 }

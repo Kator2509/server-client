@@ -1,33 +1,39 @@
-import commands.Command;
-import commands.CommandDispatcher;
+package org.servera;
+
+import org.servera.commands.Command;
+import org.servera.commands.CommandDispatcher;
+import org.servera.commands.PermissionCMD;
+import org.servera.inheritance.UserManager;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Scanner;
 
 public class Server
 {
 
-    public static boolean Run = false;
-    public static CommandDispatcher dispatcher;
-    public static Thread server;
-    public static final String prefix = "[MainServer]: ";
+    private static boolean Run = false;
+    protected static CommandDispatcher dispatcher;
+    protected static UserManager userManager;
+    private static Thread serverThread;
+    private static final String prefix = "[MainCore]: ";
 
     public static void main(String[] args)
     {
         dispatcher = new CommandDispatcher();
+        userManager = new UserManager();
         registerModules.registerCommands(dispatcher);
+        registerModules.registerUserManager(userManager);
         ServerExecute.run();
         Scanner entry = new Scanner(System.in);
 
         while(Run)
         {
-            List<String> var0 = new ArrayList<>();
+            LinkedList<String> var0 = new LinkedList<>();
             String command = "";
             int i = 0;
             for (String arguments : entry.nextLine().split(" "))
@@ -42,14 +48,27 @@ public class Server
                 }
             }
 
-            if (dispatcher.getCommandMap().containsKey(command));
+            if(dispatcher.getCommandMap().containsKey(command))
             {
                 dispatcher.executeCommand(command, var0);
             }
         }
     }
 
-    public static class callShutDown extends Command
+    public static class getterModules
+    {
+        public static CommandDispatcher getCommandDispatcher()
+        {
+            return dispatcher;
+        }
+
+        public static UserManager getUserManager()
+        {
+            return userManager;
+        }
+    }
+
+    private static class callShutDown extends Command
     {
         public callShutDown(String name) {
             super(name);
@@ -59,10 +78,12 @@ public class Server
         public void run() {
             Run = false;
             dispatcher = null;
+            userManager = null;
+            System.out.println(prefix + "Server stopped.");
         }
     }
 
-    public static class callReboot extends Command
+    private static class callReboot extends Command
     {
 
         public callReboot(String name) {
@@ -71,10 +92,9 @@ public class Server
 
         @Override
         public void run() {
-            if(server.isAlive())
+            if(serverThread.isAlive())
             {
-                System.out.println("Alive");
-                server.start();
+                serverThread.start();
             }
             else
             {
@@ -90,6 +110,12 @@ public class Server
         {
             dispatcher.register(new callShutDown("shutdown"));
             dispatcher.register(new callReboot("reboot"));
+            dispatcher.register(new PermissionCMD("permission"));
+        }
+
+        private static void registerUserManager(UserManager manager)
+        {
+            manager.createUser("TEST");
         }
     }
 
@@ -103,15 +129,15 @@ public class Server
 
         public static void run()
         {
-            server = new Thread(() -> {
-                try(ServerSocket server1 = new ServerSocket(25565)) {
+            serverThread = new Thread(() -> {
+                try(ServerSocket server = new ServerSocket(25565)) {
                     Run = true;
                     DataInputStream in = null;
 
                     while(Run && !reboot)
                     {
-                        server1.setSoTimeout(120);
-                        Socket client = server1.accept();
+                        server.setSoTimeout(120);
+                        Socket client = server.accept();
                         if(client.isConnected())
                         {
                             in = new DataInputStream(client.getInputStream());
@@ -130,7 +156,7 @@ public class Server
                     throw new RuntimeException(e);
                 }
                 reboot = false;
-                if(!server.isAlive()) {
+                if(!serverThread.isAlive()) {
                     System.out.println(prefix + "Server stopped.");
                     if (reboot) {
                         run();
@@ -138,7 +164,7 @@ public class Server
                 }
             });
 
-            server.start();
+            serverThread.start();
             System.out.println(prefix + "Server is start. Await a command: ");
         }
     }
