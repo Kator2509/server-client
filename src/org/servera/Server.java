@@ -4,6 +4,8 @@ import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
 import org.servera.commands.PermissionCMD;
 import org.servera.config.Configuration;
+import org.servera.config.ConfigurationManager;
+import org.servera.config.FileManager.Manager;
 import org.servera.inheritance.UserManager;
 
 import java.io.DataInputStream;
@@ -12,23 +14,32 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Server
 {
-
     private static boolean Run = false;
     protected static CommandDispatcher dispatcher;
     protected static UserManager userManager;
+    protected static ConfigurationManager configurationManager;
+    protected static Manager manager;
     private static Thread serverThread;
-    private static final String prefix = "[MainCore]: ";
+    private static final String prefix = "[ServerThread]: ";
 
     public static void main(String[] args)
     {
+
         dispatcher = new CommandDispatcher();
+        manager = new Manager();
         userManager = new UserManager();
+        configurationManager = new ConfigurationManager();
+
         registerModules.registerCommands(dispatcher);
-        registerModules.registerUserManager(userManager);
+        registerModules.registerUserManager(userManager, manager);
+        registerModules.registerConfigurations(configurationManager);
+        registerModules.registerFileManager(manager);
+
         ServerExecute.run();
         Scanner entry = new Scanner(System.in);
 
@@ -78,9 +89,29 @@ public class Server
             dispatcher.register(new PermissionCMD("permission"));
         }
 
-        private static void registerUserManager(UserManager manager)
+        private static void registerUserManager(UserManager manager, Manager fileManager)
         {
-            manager.createUser("TEST");
+            manager.createUser("TEST", fileManager);
+        }
+
+        private static void registerConfigurations(ConfigurationManager configurationManager)
+        {
+            configurationManager.register("DataBase", new Configuration("DBConfig.yml"));
+            configurationManager.register("SystemFiles", new Configuration("System/SystemFiles.yml"));
+        }
+
+        private static void registerFileManager(Manager fileManager)
+        {
+            List<Object> var = (List<Object>) configurationManager.getConfiguration("SystemFiles").getDataPath("directories");
+            for(Object var1 : var)
+            {
+                fileManager.createSystemDirectory(var1.toString());
+            }
+            var = (List<Object>) configurationManager.getConfiguration("SystemFiles").getDataPath("files");
+            for(Object var1 : var)
+            {
+                fileManager.createSystemFile(var1.toString());
+            }
         }
     }
 

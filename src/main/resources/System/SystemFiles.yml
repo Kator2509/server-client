@@ -1,0 +1,9 @@
+  #Attenion! If you want to create a file, before creating directories.
+  #You can add directories and system creating automatically.
+
+  #Default directories.
+directories: [
+                "Settings/GlobalSettings"
+]
+  #Files at start to empty.
+files: []
