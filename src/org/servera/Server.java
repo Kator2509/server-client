@@ -6,6 +6,7 @@ import org.servera.commands.PermissionCMD;
 import org.servera.config.Configuration;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.Manager;
+import org.servera.inheritance.UserArgument;
 import org.servera.inheritance.UserManager;
 
 import java.io.DataInputStream;
@@ -16,6 +17,8 @@ import java.net.SocketTimeoutException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+
+import static org.servera.config.FileManager.JSONParser.getData;
 
 public class Server
 {
@@ -39,6 +42,10 @@ public class Server
         registerModules.registerUserManager(userManager, manager);
         registerModules.registerConfigurations(configurationManager);
         registerModules.registerFileManager(manager);
+
+
+
+
 
         ServerExecute.run();
         Scanner entry = new Scanner(System.in);
@@ -91,7 +98,7 @@ public class Server
 
         private static void registerUserManager(UserManager manager, Manager fileManager)
         {
-            manager.createUser("TEST", fileManager);
+            manager.createUser("TEST", fileManager, UserArgument.user_admin);
         }
 
         private static void registerConfigurations(ConfigurationManager configurationManager)

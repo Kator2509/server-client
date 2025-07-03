@@ -1,10 +1,10 @@
 package org.servera.inheritance;
 
+import org.servera.DataBasePSQL.Connector;
 import org.servera.config.FileManager.Manager;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class UserManager
 {
@@ -16,11 +16,8 @@ public class UserManager
 
     public UserManager(Map<String, User> userMap){this.userMap = userMap;}
 
-    public void createUser(String name, Manager manager)
+    public void createUser(String name, Manager connector, String argument)
     {
-        manager.createSystemDirectory("User/DataUser");
-        manager.createSystemFile(defaultFolder + name + ".json");
-
 
 
 //        if(!userMap.containsKey(name))

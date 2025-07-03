@@ -1,4 +1,5 @@
-UserDataBaseLogin: "test"
-UserDataBasePass: ""
-Test:
-  request: "TEST"
+  #If you use new connection, add your database here.
+  #Example: {"host": "DataBaseHost", "password": "DataBaseUserPassword", "port": "DataBasePort", "login": "DataBaseUserLogin"}
+
+DataBase:
+  UserDataBase: {"login": "1", "password": "2", "host": "localhost", "port": "5432"}
