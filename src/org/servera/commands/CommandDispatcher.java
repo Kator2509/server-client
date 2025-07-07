@@ -25,15 +25,28 @@ public class CommandDispatcher
         }
     }
 
-    public boolean executeCommand(String name, LinkedList<String> args)
+    public void runCommand(String name, LinkedList<String> args)
+    {
+        if(!executeCommand(name, args))
+        {
+            System.out.println(foundCommand(name));
+        }
+    }
+
+    private String foundCommand(String name)
+    {
+
+        return null;
+    }
+
+    private boolean executeCommand(String name, LinkedList<String> args)
     {
         if(commandMap.containsKey(name))
         {
             Command command = commandMap.get(name);
             command.setArguments(args);
-            command.run();
-            System.out.println(prefix + "Execute command - " + command.getName());
-            return true;
+            System.out.println(prefix + "Executed command - " + command.getName());
+            return command.run();
         }
         System.out.println(prefix + "Can't execute command - " + name + ". Don't found the command.");
         return false;

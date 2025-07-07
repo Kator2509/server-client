@@ -1,11 +1,13 @@
 package org.servera;
 
+import org.servera.DataBasePSQL.Connector;
+import org.servera.DataBasePSQL.ConnectorManager;
 import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
 import org.servera.commands.PermissionCMD;
 import org.servera.config.Configuration;
 import org.servera.config.ConfigurationManager;
-import org.servera.config.FileManager.Manager;
+import org.servera.config.FileManager.JSONParser;
 import org.servera.inheritance.UserArgument;
 import org.servera.inheritance.UserManager;
 
@@ -15,10 +17,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Scanner;
-
-import static org.servera.config.FileManager.JSONParser.getData;
 
 public class Server
 {
@@ -26,24 +25,21 @@ public class Server
     protected static CommandDispatcher dispatcher;
     protected static UserManager userManager;
     protected static ConfigurationManager configurationManager;
-    protected static Manager manager;
+    protected static ConnectorManager connectorManager;
     private static Thread serverThread;
     private static final String prefix = "[ServerThread]: ";
 
     public static void main(String[] args)
     {
-
         dispatcher = new CommandDispatcher();
-        manager = new Manager();
         userManager = new UserManager();
         configurationManager = new ConfigurationManager();
+        connectorManager = new ConnectorManager();
 
         registerModules.registerCommands(dispatcher);
-        registerModules.registerUserManager(userManager, manager);
         registerModules.registerConfigurations(configurationManager);
-        registerModules.registerFileManager(manager);
-
-
+        registerModules.registerConnection(connectorManager, configurationManager);
+        registerModules.registerUserManager(userManager);
 
 
 
@@ -67,10 +63,7 @@ public class Server
                 }
             }
 
-            if(dispatcher.getCommandMap().containsKey(command))
-            {
-                dispatcher.executeCommand(command, var0);
-            }
+            dispatcher.runCommand(command, var0);
         }
     }
 
@@ -89,6 +82,16 @@ public class Server
 
     private static class registerModules
     {
+        private static void registerConnection(ConnectorManager connectorManager, ConfigurationManager configurationManager)
+        {
+            connectorManager.register("UserDataBase",
+                    new Connector(
+                            JSONParser.getData(configurationManager.getConfiguration("DataBase").getDataPath("DataBase.UserDataBase").toString(), "login").toString(),
+                            JSONParser.getData(configurationManager.getConfiguration("DataBase").getDataPath("DataBase.UserDataBase").toString(), "password").toString(),
+                            JSONParser.getData(configurationManager.getConfiguration("DataBase").getDataPath("DataBase.UserDataBase").toString(), "url").toString()
+                    ));
+        }
+
         private static void registerCommands(CommandDispatcher dispatcher)
         {
             dispatcher.register(new callShutDown("shutdown"));
@@ -96,29 +99,15 @@ public class Server
             dispatcher.register(new PermissionCMD("permission"));
         }
 
-        private static void registerUserManager(UserManager manager, Manager fileManager)
+        private static void registerUserManager(UserManager manager)
         {
-            manager.createUser("TEST", fileManager, UserArgument.user_admin);
+            manager.createUser("TEST", connectorManager.getConnect("UserDataBase"), UserArgument.user_admin);
         }
 
         private static void registerConfigurations(ConfigurationManager configurationManager)
         {
             configurationManager.register("DataBase", new Configuration("DBConfig.yml"));
-            configurationManager.register("SystemFiles", new Configuration("System/SystemFiles.yml"));
-        }
-
-        private static void registerFileManager(Manager fileManager)
-        {
-            List<Object> var = (List<Object>) configurationManager.getConfiguration("SystemFiles").getDataPath("directories");
-            for(Object var1 : var)
-            {
-                fileManager.createSystemDirectory(var1.toString());
-            }
-            var = (List<Object>) configurationManager.getConfiguration("SystemFiles").getDataPath("files");
-            for(Object var1 : var)
-            {
-                fileManager.createSystemFile(var1.toString());
-            }
+            configurationManager.register("DefaultParameters", new Configuration("System/Default.yml"));
         }
     }
 
@@ -129,11 +118,12 @@ public class Server
         }
 
         @Override
-        public void run() {
+        public boolean run() {
             Run = false;
             dispatcher = null;
             userManager = null;
             System.out.println(prefix + "Server stopped.");
+            return true;
         }
     }
 
@@ -143,16 +133,18 @@ public class Server
             super(name);
         }
         @Override
-        public void run() {
+        public boolean run() {
             if(serverThread.isAlive())
             {
                 serverThread.start();
+                System.out.println(prefix + "Server was offline. Starting server thread.");
             }
             else
             {
-                System.out.println(prefix + "Reboot server core.");
+                System.out.println(prefix + "Reboot server thread.");
                 ServerExecute.callReboot();
             }
+            return true;
         }
     }
 
@@ -173,6 +165,7 @@ public class Server
 
                     while(Run && !reboot)
                     {
+                        //Server thread code. Connection with client. Need override for login manager.
                         server.setSoTimeout(120);
                         Socket client = server.accept();
                         if(client.isConnected())
@@ -189,7 +182,7 @@ public class Server
                     System.out.println(prefix + "Server stopped as crash. Trying to reboot server.");
                     System.out.println(prefix + "If you see that cause one more. Please report as that.");
                     System.out.println(prefix + "And call emergency stop the server.");
-                    dispatcher.executeCommand("reboot", null);
+                    dispatcher.runCommand("reboot", null);
                     throw new RuntimeException(e);
                 }
                 reboot = false;
@@ -197,6 +190,7 @@ public class Server
                     System.out.println(prefix + "Server stopped.");
                     if (reboot) {
                         run();
+                        System.out.println(prefix + "Server rebooted success");
                     }
                 }
             });

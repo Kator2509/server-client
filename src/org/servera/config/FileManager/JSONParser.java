@@ -14,7 +14,7 @@ public class JSONParser
             Iterator<String> iterator = Arrays.stream(var1.split("=")).iterator();
             if (iterator.hasNext())
             {
-                if (Objects.equals(iterator.next(), container))
+                if (Objects.equals(iterator.next().replace(" ", ""), container))
                 {
                     return iterator.next();
                 }

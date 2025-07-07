@@ -1,0 +1,5 @@
+defaultUser:
+  [
+    {"Login": "Admin", "Password": "admin"},
+    {"Login": "User", Password: "user"}
+  ]

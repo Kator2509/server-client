@@ -1,31 +1,46 @@
 package org.servera.commands;
 
+import org.servera.DataBasePSQL.Connector;
 import org.servera.Server;
 import org.servera.inheritance.User;
+import org.servera.inheritance.UserManager;
 
 import java.util.Locale;
 
 public class PermissionCMD extends Command
 {
+
     public PermissionCMD(String name) {
         super(name);
     }
 
     @Override
-    public void run() {
+    public boolean run() {
         if(this.getArguments().get(0).toLowerCase(Locale.ROOT).equals("add")) {
             addPermission(this.getArguments().get(1), this.getArguments().get(2).toLowerCase(Locale.ROOT), this.getArguments().get(3));
+            return true;
         }
+        return false;
     }
 
-    public void addPermission(String userName, String path, String commandName)
+    private void addPermission(String userName, String path, String permissionName)
     {
         CommandDispatcher dispatcher = Server.getterModules.getCommandDispatcher();
         User user = Server.getterModules.getUserManager().getUser(userName);
 
-        if (user.access(path)) {
-            user.newRulePermission(path, dispatcher.getCommandMap().get(commandName));
-        }
+
     }
+
+    private void deletePermission()
+    {
+
+    }
+
+    private void resetPermission()
+    {
+
+    }
+
+
 }
 

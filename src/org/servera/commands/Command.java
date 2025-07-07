@@ -12,7 +12,7 @@ public abstract class Command {
 
     }
 
-    public abstract void run();
+    public abstract boolean run();
 
     public void setArguments(LinkedList<String> arguments)
     {

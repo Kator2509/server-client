@@ -1,5 +1,5 @@
-  #If you use new connection, add your database here.
-  #Example: {"host": "DataBaseHost", "password": "DataBaseUserPassword", "port": "DataBasePort", "login": "DataBaseUserLogin"}
+  #If you use new connection, add your database here. System using postgresql.
+  #Example: {"login": "DataBaseLogin", "password": "DataBaseUserPassword", "url": "UrlToYourDataBase"}
 
 DataBase:
-  UserDataBase: {"login": "1", "password": "2", "host": "localhost", "port": "5432"}
+  UserDataBase: {"login": "postgres", "password": "postgres", "url": "jdbc:postgresql://localhost:5432/postgres"}
