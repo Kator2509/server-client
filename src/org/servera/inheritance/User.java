@@ -4,20 +4,32 @@ import java.util.UUID;
 
 public class User
 {
-    private UUID uuid;
-    private String name;
+    protected UUID uuid;
+    private String firstName, secondName, tab;
+    private Group group;
 
-    public User(String name, UUID uuid)
+    public User(UUID uuid, String tab, String firstName, String secondName, Group group)
     {
-        this.name = name;
+        this.firstName = firstName;
+        this.secondName = secondName;
         this.uuid = uuid;
+        this.group = group;
+        this.tab = tab;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return this.firstName;
     }
 
     public UUID getUUID() {
-        return uuid;
+        return this.uuid;
+    }
+
+    public String getTab() {
+        return this.tab;
+    }
+
+    public Group getGroup() {
+        return this.group;
     }
 }

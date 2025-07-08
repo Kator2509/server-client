@@ -24,6 +24,11 @@ public class ConnectorManager
         }
     }
 
+    private void loadConfig()
+    {
+
+    }
+
     public Connector getConnect(String name)
     {
         if (this.connectorMap.containsKey(name))

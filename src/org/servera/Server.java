@@ -32,16 +32,16 @@ public class Server
     public static void main(String[] args)
     {
         dispatcher = new CommandDispatcher();
-        userManager = new UserManager();
         configurationManager = new ConfigurationManager();
         connectorManager = new ConnectorManager();
 
-        registerModules.registerCommands(dispatcher);
         registerModules.registerConfigurations(configurationManager);
         registerModules.registerConnection(connectorManager, configurationManager);
-        registerModules.registerUserManager(userManager);
+        userManager = new UserManager(connectorManager.getConnect("UserDataBase"), configurationManager.getConfiguration("DefaultParameters"));
 
+        registerModules.registerCommands(dispatcher);
 
+        userManager.createUser("Администратор", new String[]{UserArgument.user_admin});
 
         ServerExecute.run();
         Scanner entry = new Scanner(System.in);
@@ -97,11 +97,6 @@ public class Server
             dispatcher.register(new callShutDown("shutdown"));
             dispatcher.register(new callReboot("reboot"));
             dispatcher.register(new PermissionCMD("permission"));
-        }
-
-        private static void registerUserManager(UserManager manager)
-        {
-            manager.createUser("TEST", connectorManager.getConnect("UserDataBase"), UserArgument.user_admin);
         }
 
         private static void registerConfigurations(ConfigurationManager configurationManager)
