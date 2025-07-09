@@ -8,7 +8,6 @@ import org.servera.commands.PermissionCMD;
 import org.servera.config.Configuration;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.JSONParser;
-import org.servera.inheritance.UserArgument;
 import org.servera.inheritance.UserManager;
 
 import java.io.DataInputStream;
@@ -26,12 +25,12 @@ public class Server
     protected static UserManager userManager;
     protected static ConfigurationManager configurationManager;
     protected static ConnectorManager connectorManager;
-    private static Thread serverThread;
+    protected static Thread serverThread;
+    protected static Thread dispatcherThread;
     private static final String prefix = "[ServerThread]: ";
 
     public static void main(String[] args)
     {
-        dispatcher = new CommandDispatcher();
         configurationManager = new ConfigurationManager();
         connectorManager = new ConnectorManager();
 
@@ -39,32 +38,13 @@ public class Server
         registerModules.registerConnection(connectorManager, configurationManager);
         userManager = new UserManager(connectorManager.getConnect("UserDataBase"), configurationManager.getConfiguration("DefaultParameters"));
 
+        dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"));
         registerModules.registerCommands(dispatcher);
 
-        userManager.createUser("Администратор", new String[]{UserArgument.user_admin});
+
 
         ServerExecute.run();
-        Scanner entry = new Scanner(System.in);
-
-        while(Run)
-        {
-            LinkedList<String> var0 = new LinkedList<>();
-            String command = "";
-            int i = 0;
-            for (String arguments : entry.nextLine().split(" "))
-            {
-                if (i == 0)
-                {
-                    command = arguments;
-                    i++;
-                }
-                else {
-                    var0.add(arguments);
-                }
-            }
-
-            dispatcher.runCommand(command, var0);
-        }
+        ServerCommandDispatcher.run();
     }
 
     public static class getterModules
@@ -103,6 +83,8 @@ public class Server
         {
             configurationManager.register("DataBase", new Configuration("DBConfig.yml"));
             configurationManager.register("DefaultParameters", new Configuration("System/Default.yml"));
+            configurationManager.register("language",
+                    new Configuration("language/" + configurationManager.getConfiguration("DefaultParameters").getDataPath("language") + ".yml"));
         }
     }
 
@@ -143,15 +125,47 @@ public class Server
         }
     }
 
+    private static class ServerCommandDispatcher
+    {
+        private static void run()
+        {
+            dispatcherThread = new Thread(() -> {
+                Scanner entry = new Scanner(System.in);
+                while(Run)
+                {
+                    LinkedList<String> var0 = new LinkedList<>();
+                    String command = "";
+                    int i = 0;
+                    System.out.print("Console ~: ");
+                    for (String arguments : entry.nextLine().split(" "))
+                    {
+                        if (i == 0)
+                        {
+                            command = arguments;
+                            i++;
+                        }
+                        else {
+                            var0.add(arguments);
+                        }
+                    }
+
+                    dispatcher.runCommand(command, var0);
+                }
+            });
+
+            dispatcherThread.start();
+        }
+    }
+
     private static class ServerExecute
     {
         private static boolean reboot = false;
-        public static void callReboot()
+        private static void callReboot()
         {
             reboot = true;
         }
 
-        public static void run()
+        private static void run()
         {
             serverThread = new Thread(() -> {
                 try(ServerSocket server = new ServerSocket(25565)) {
@@ -178,7 +192,7 @@ public class Server
                     System.out.println(prefix + "If you see that cause one more. Please report as that.");
                     System.out.println(prefix + "And call emergency stop the server.");
                     dispatcher.runCommand("reboot", null);
-                    throw new RuntimeException(e);
+                    e.getStackTrace();
                 }
                 reboot = false;
                 if(!serverThread.isAlive()) {

@@ -9,7 +9,6 @@ public abstract class Command {
     public Command(String name)
     {
         this.name = name;
-
     }
 
     public abstract boolean run();

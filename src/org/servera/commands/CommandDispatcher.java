@@ -1,5 +1,7 @@
 package org.servera.commands;
 
+import org.servera.config.Configuration;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -8,13 +10,16 @@ public class CommandDispatcher
 {
     protected Map<String, Command> commandMap = new HashMap<>();
     private static final String prefix = "[ListenerCommandDispatcher]: ";
+    protected Configuration configuration;
 
-    public CommandDispatcher(){}
+    public CommandDispatcher(Configuration configuration){
+        this.configuration = configuration;
+    }
 
-    public CommandDispatcher(Map<String, Command> commandMap)
+    public CommandDispatcher(Map<String, Command> commandMap, Configuration configuration)
     {
+        this.configuration = configuration;
         this.commandMap = commandMap;
-
     }
 
     public void register(Command command)
@@ -29,14 +34,23 @@ public class CommandDispatcher
     {
         if(!executeCommand(name, args))
         {
-            System.out.println(foundCommand(name));
+            System.out.println(prefix + "Maybe you mean \"" + foundCommand(name) + "\"");
         }
     }
 
     private String foundCommand(String name)
     {
-
-        return null;
+        var temp = name;
+        for(int i = name.length(); i > 0; i--)
+        {
+            temp = temp.substring(0, temp.length() - 1);
+            for(String var: commandMap.keySet()) {
+                 if (var.startsWith(temp) && !temp.isEmpty()) {
+                     return (String) configuration.getDataPath(var);
+                 }
+            }
+        }
+        return "";
     }
 
     private boolean executeCommand(String name, LinkedList<String> args)
@@ -50,10 +64,5 @@ public class CommandDispatcher
         }
         System.out.println(prefix + "Can't execute command - " + name + ". Don't found the command.");
         return false;
-    }
-
-    public Map<String, Command> getCommandMap()
-    {
-        return this.commandMap;
     }
 }
