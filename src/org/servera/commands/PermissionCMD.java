@@ -10,8 +10,8 @@ import java.util.Locale;
 public class PermissionCMD extends Command
 {
 
-    public PermissionCMD(String name) {
-        super(name);
+    public PermissionCMD(String name, String permission) {
+        super(name, permission);
     }
 
     @Override
@@ -25,7 +25,6 @@ public class PermissionCMD extends Command
 
     private void addPermission(String userName, String path, String permissionName)
     {
-        CommandDispatcher dispatcher = Server.getterModules.getCommandDispatcher();
         User user = Server.getterModules.getUserManager().getUser(userName);
 
 

@@ -8,11 +8,14 @@ public class ConnectorManager
     protected Map<String, Connector> connectorMap = new HashMap<>();
     private static final String prefix = "[DataBaseManager]: ";
 
-    public ConnectorManager(){}
+    public ConnectorManager(){
+        System.out.println(prefix + "Loaded.");
+    }
 
     public ConnectorManager(Map<String, Connector> connectorMap)
     {
         this.connectorMap = connectorMap;
+        System.out.println(prefix + "Loaded.");
     }
 
     public void register(String name, Connector connector)

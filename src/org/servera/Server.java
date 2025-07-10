@@ -4,10 +4,11 @@ import org.servera.DataBasePSQL.Connector;
 import org.servera.DataBasePSQL.ConnectorManager;
 import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
-import org.servera.commands.PermissionCMD;
 import org.servera.config.Configuration;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.JSONParser;
+import org.servera.inheritance.SPermission.PermissionManager;
+import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
 
 import java.io.DataInputStream;
@@ -15,8 +16,12 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.Scanner;
+import java.util.UUID;
 
 public class Server
 {
@@ -25,6 +30,7 @@ public class Server
     protected static UserManager userManager;
     protected static ConfigurationManager configurationManager;
     protected static ConnectorManager connectorManager;
+    protected static PermissionManager permissionManager;
     protected static Thread serverThread;
     protected static Thread dispatcherThread;
     private static final String prefix = "[ServerThread]: ";
@@ -40,8 +46,35 @@ public class Server
 
         dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"));
         registerModules.registerCommands(dispatcher);
+        permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"), dispatcher);
+        if(dispatcher.registerPermissionManager(permissionManager))
+        {
+            System.out.println(prefix + "Permission Load.");
+        }
+        else
+        {
+            System.out.println(prefix + "[ERROR] Permissions not loaded. That can cause a problem.");
+        }
+
+        connectorManager.getConnect("UserDataBase").openConnection(connection ->
+        {
+            try {
+                Statement var = connection.createStatement();
+                var.execute("SELECT count(*) FROM us_users WHERE tab_num = 'T-CONSOLE' AND firstName = 'Console'");
+                ResultSet rs = var.getResultSet();
+                rs.next();
+                if(!(rs.getInt(1) > 0)) {
+                    var.execute("insert into us_users (uuid, tab_num, firstname, dcre) values ('" + UUID.randomUUID() + "', 'T-CONSOLE', 'Console', now())");
+                    System.out.println(prefix + "Created user for console.");
 
 
+                }
+            } catch (SQLException e)
+            {
+                System.out.println(prefix + "[ERROR] Can't load a checker.");
+                e.printStackTrace();
+            }
+        });
 
         ServerExecute.run();
         ServerCommandDispatcher.run();
@@ -74,9 +107,9 @@ public class Server
 
         private static void registerCommands(CommandDispatcher dispatcher)
         {
-            dispatcher.register(new callShutDown("shutdown"));
-            dispatcher.register(new callReboot("reboot"));
-            dispatcher.register(new PermissionCMD("permission"));
+            dispatcher.register(new callShutDown("shutdown", "System.shutdown"));
+            dispatcher.register(new callReboot("reboot", "System.reboot"));
+            System.out.println(prefix + "Registered system commands.");
         }
 
         private static void registerConfigurations(ConfigurationManager configurationManager)
@@ -90,8 +123,8 @@ public class Server
 
     private static class callShutDown extends Command
     {
-        public callShutDown(String name) {
-            super(name);
+        public callShutDown(String name, String permission) {
+            super(name, permission);
         }
 
         @Override
@@ -106,8 +139,8 @@ public class Server
 
     private static class callReboot extends Command
     {
-        public callReboot(String name) {
-            super(name);
+        public callReboot(String name, String permission) {
+            super(name, permission);
         }
         @Override
         public boolean run() {
@@ -119,6 +152,22 @@ public class Server
             else
             {
                 System.out.println(prefix + "Reboot server thread.");
+                System.out.println(prefix + "Starting loading modules...");
+                configurationManager = new ConfigurationManager();
+                connectorManager = new ConnectorManager();
+
+                registerModules.registerConfigurations(configurationManager);
+                registerModules.registerConnection(connectorManager, configurationManager);
+                userManager = new UserManager(connectorManager.getConnect("UserDataBase"), configurationManager.getConfiguration("DefaultParameters"));
+
+                dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"));
+                registerModules.registerCommands(dispatcher);
+                permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"), dispatcher);
+                if(!dispatcher.registerPermissionManager(permissionManager))
+                {
+                    System.out.println(prefix + "[ERROR] Permissions not loaded. That can cause a problem.");
+                }
+
                 ServerExecute.callReboot();
             }
             return true;
@@ -136,7 +185,11 @@ public class Server
                     LinkedList<String> var0 = new LinkedList<>();
                     String command = "";
                     int i = 0;
-                    System.out.print("Console ~: ");
+
+
+                    System.out.print(userManager.getUser("Console").getFirstName() + ":~$ ");
+
+
                     for (String arguments : entry.nextLine().split(" "))
                     {
                         if (i == 0)
@@ -149,7 +202,7 @@ public class Server
                         }
                     }
 
-                    dispatcher.runCommand(command, var0);
+                    dispatcher.runCommand(command, var0, userManager.getUser("Console"));
                 }
             });
 
@@ -191,7 +244,7 @@ public class Server
                     System.out.println(prefix + "Server stopped as crash. Trying to reboot server.");
                     System.out.println(prefix + "If you see that cause one more. Please report as that.");
                     System.out.println(prefix + "And call emergency stop the server.");
-                    dispatcher.runCommand("reboot", null);
+                    dispatcher.runCommand("reboot", null, null);
                     e.getStackTrace();
                 }
                 reboot = false;

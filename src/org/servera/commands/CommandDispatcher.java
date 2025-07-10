@@ -1,6 +1,8 @@
 package org.servera.commands;
 
 import org.servera.config.Configuration;
+import org.servera.inheritance.SPermission.PermissionManager;
+import org.servera.inheritance.User;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -11,15 +13,30 @@ public class CommandDispatcher
     protected Map<String, Command> commandMap = new HashMap<>();
     private static final String prefix = "[ListenerCommandDispatcher]: ";
     protected Configuration configuration;
+    protected PermissionManager permissionManager;
 
     public CommandDispatcher(Configuration configuration){
         this.configuration = configuration;
+        System.out.println(prefix + "Loaded.");
     }
 
     public CommandDispatcher(Map<String, Command> commandMap, Configuration configuration)
     {
         this.configuration = configuration;
         this.commandMap = commandMap;
+        System.out.println(prefix + "Loaded.");
+    }
+
+    public boolean registerPermissionManager(PermissionManager permissionManager)
+    {
+        this.permissionManager = permissionManager;
+        System.out.println(prefix + "Permission load.");
+        return this.permissionManager != null;
+    }
+
+    public Command getCommand(String name)
+    {
+        return this.commandMap.get(name);
     }
 
     public void register(Command command)
@@ -30,11 +47,22 @@ public class CommandDispatcher
         }
     }
 
-    public void runCommand(String name, LinkedList<String> args)
+    public void runCommand(String name, LinkedList<String> args, User user)
     {
-        if(!executeCommand(name, args))
+        Command command = commandMap.get(name);
+        command.setArguments(args);
+        if(commandMap.containsKey(name))
         {
-            System.out.println(prefix + "Maybe you mean \"" + foundCommand(name) + "\"");
+            if(this.permissionManager.isUserPermission(user, command.getPermission())) {
+                if (!executeCommand(command, args))
+                {
+                    System.out.println(prefix + "[ERROR] Can't execute command - " + name + ". Don't found the command.");
+                    System.out.println(prefix + "Maybe you mean \"" + configuration.getDataPath((String) configuration.getDataPath(foundCommand(name))) + "\"");
+                }
+            }
+            else {
+                System.out.println(prefix + "You don't have permission.");
+            }
         }
     }
 
@@ -46,23 +74,16 @@ public class CommandDispatcher
             temp = temp.substring(0, temp.length() - 1);
             for(String var: commandMap.keySet()) {
                  if (var.startsWith(temp) && !temp.isEmpty()) {
-                     return (String) configuration.getDataPath(var);
+                     return var;
                  }
             }
         }
         return "";
     }
 
-    private boolean executeCommand(String name, LinkedList<String> args)
+    private boolean executeCommand(Command command, LinkedList<String> args)
     {
-        if(commandMap.containsKey(name))
-        {
-            Command command = commandMap.get(name);
-            command.setArguments(args);
-            System.out.println(prefix + "Executed command - " + command.getName());
-            return command.run();
-        }
-        System.out.println(prefix + "Can't execute command - " + name + ". Don't found the command.");
-        return false;
+        System.out.println(prefix + "Executed command - " + command.getName());
+        return command.run();
     }
 }
