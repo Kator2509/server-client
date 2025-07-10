@@ -50,18 +50,25 @@ public class CommandDispatcher
     public void runCommand(String name, LinkedList<String> args, User user)
     {
         Command command = commandMap.get(name);
-        command.setArguments(args);
+        if(!args.isEmpty()) {
+            command.setArguments(args);
+        }
         if(commandMap.containsKey(name))
         {
             if(this.permissionManager.isUserPermission(user, command.getPermission()) || this.permissionManager.isUserHaveGroup(user, command.getPermission())) {
-                if (!executeCommand(command, args))
+                if (!executeCommand(command))
                 {
-                    System.out.println(prefix + "[ERROR] Can't execute command - " + name + ". Don't found the command.");
-                    System.out.println(prefix + "Maybe you mean \"" + configuration.getDataPath((String) configuration.getDataPath(foundCommand(name))) + "\"");
+                    System.out.println(prefix + "Can't execute command - " + name + ".");
                 }
             }
             else {
                 System.out.println(prefix + "You don't have permission.");
+            }
+        }else
+        {
+            System.out.println(prefix + "[ERROR] Can't execute command - " + name + ". Don't found the command.");
+            if(!foundCommand(name).isEmpty()) {
+                System.out.println(prefix + "Maybe you mean \"" + configuration.getDataPath(foundCommand(name)) + "\"");
             }
         }
     }
@@ -81,7 +88,7 @@ public class CommandDispatcher
         return "";
     }
 
-    private boolean executeCommand(Command command, LinkedList<String> args)
+    private boolean executeCommand(Command command)
     {
         System.out.println(prefix + "Executed command - " + command.getName());
         return command.run();

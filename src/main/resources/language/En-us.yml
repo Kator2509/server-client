@@ -1,3 +1,2 @@
-shutdown: "shutdown - stop."
-reboot: "reboot - reload system."
-permission: "permission <add|delete|reset> <User|Group> <UserName|GroupName> <PermissionName|GroupName> - Change permission user or change group user"
+shutdown: "shutdown - stop"
+reboot: "reboot - reload system"

@@ -80,6 +80,7 @@ public class Server
             configurationManager.register("DefaultParameters", new Configuration("System/Default.yml"));
             configurationManager.register("language",
                     new Configuration("language/" + configurationManager.getConfiguration("DefaultParameters").getDataPath("language") + ".yml"));
+            System.out.println(prefix + "Configurations loaded.");
         }
     }
 

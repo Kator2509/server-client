@@ -1,3 +1,2 @@
-shutdown: 'shutdown - завершение работы.'
-reboot: 'reboot - перезапуск системы.'
-permission: 'permission <add|delete|reset> <User|Group> <UserName|GroupName> <PermissionName|GroupName> - Изменение прав пользователя или изменение группы пользователя.'
+shutdown: "shutdown - завершение работы"
+reboot: "reboot - перезапуск системы"
