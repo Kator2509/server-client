@@ -6,14 +6,12 @@ public class User
 {
     protected UUID uuid;
     private String firstName, secondName, tab;
-    private Group group;
 
-    public User(UUID uuid, String tab, String firstName, String secondName, Group group)
+    public User(UUID uuid, String tab, String firstName, String secondName)
     {
         this.firstName = firstName;
         this.secondName = secondName;
         this.uuid = uuid;
-        this.group = group;
         this.tab = tab;
     }
 
@@ -27,9 +25,5 @@ public class User
 
     public String getTab() {
         return this.tab;
-    }
-
-    public Group getGroup() {
-        return this.group;
     }
 }

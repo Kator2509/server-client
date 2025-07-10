@@ -84,8 +84,7 @@ public class UserManager
                     userMap.put(rs.getString(3), new User(UUID.fromString(rs.getString(1)),
                             rs.getString(2),
                             rs.getString(3),
-                            rs.getString(4),
-                            null));
+                            rs.getString(4)));
                 }
 
             } catch (SQLException e) {

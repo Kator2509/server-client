@@ -8,7 +8,6 @@ import org.servera.config.Configuration;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.JSONParser;
 import org.servera.inheritance.SPermission.PermissionManager;
-import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
 
 import java.io.DataInputStream;
@@ -47,50 +46,13 @@ public class Server
         dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"));
         registerModules.registerCommands(dispatcher);
         permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"), dispatcher);
-        if(dispatcher.registerPermissionManager(permissionManager))
-        {
-            System.out.println(prefix + "Permission Load.");
-        }
-        else
+        if(!dispatcher.registerPermissionManager(permissionManager))
         {
             System.out.println(prefix + "[ERROR] Permissions not loaded. That can cause a problem.");
         }
 
-        connectorManager.getConnect("UserDataBase").openConnection(connection ->
-        {
-            try {
-                Statement var = connection.createStatement();
-                var.execute("SELECT count(*) FROM us_users WHERE tab_num = 'T-CONSOLE' AND firstName = 'Console'");
-                ResultSet rs = var.getResultSet();
-                rs.next();
-                if(!(rs.getInt(1) > 0)) {
-                    var.execute("insert into us_users (uuid, tab_num, firstname, dcre) values ('" + UUID.randomUUID() + "', 'T-CONSOLE', 'Console', now())");
-                    System.out.println(prefix + "Created user for console.");
-
-
-                }
-            } catch (SQLException e)
-            {
-                System.out.println(prefix + "[ERROR] Can't load a checker.");
-                e.printStackTrace();
-            }
-        });
-
         ServerExecute.run();
         ServerCommandDispatcher.run();
-    }
-
-    public static class getterModules
-    {
-        public static CommandDispatcher getCommandDispatcher()
-        {
-            return dispatcher;
-        }
-
-        public static UserManager getUserManager()
-        {
-            return userManager;
-        }
     }
 
     private static class registerModules
@@ -244,7 +206,7 @@ public class Server
                     System.out.println(prefix + "Server stopped as crash. Trying to reboot server.");
                     System.out.println(prefix + "If you see that cause one more. Please report as that.");
                     System.out.println(prefix + "And call emergency stop the server.");
-                    dispatcher.runCommand("reboot", null, null);
+                    dispatcher.runCommand("reboot", null, userManager.getUser("Console"));
                     e.getStackTrace();
                 }
                 reboot = false;
@@ -259,6 +221,32 @@ public class Server
 
             serverThread.start();
             System.out.println(prefix + "Server is start. Await a command: ");
+        }
+    }
+
+    private static class ServerSetDefaultParameters{
+        private static boolean setParametersToDefault()
+        {
+            connectorManager.getConnect("UserDataBase").openConnection(connection ->
+            {
+                try {
+                    Statement var = connection.createStatement();
+                    var.execute("SELECT count(*) FROM us_users WHERE tab_num = 'T-CONSOLE' AND firstName = 'Console'");
+                    ResultSet rs = var.getResultSet();
+                    rs.next();
+                    if(!(rs.getInt(1) > 0)) {
+                        var.execute("insert into us_users (uuid, tab_num, firstname, dcre) values ('" + UUID.randomUUID() + "', 'T-CONSOLE', 'Console', now())");
+                        System.out.println(prefix + "Created user for console.");
+
+
+                    }
+                } catch (SQLException e)
+                {
+                    System.out.println(prefix + "[ERROR] Can't load a checker.");
+                    e.printStackTrace();
+                }
+            });
+            return false;
         }
     }
 }

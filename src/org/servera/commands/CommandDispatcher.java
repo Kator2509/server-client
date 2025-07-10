@@ -53,7 +53,7 @@ public class CommandDispatcher
         command.setArguments(args);
         if(commandMap.containsKey(name))
         {
-            if(this.permissionManager.isUserPermission(user, command.getPermission())) {
+            if(this.permissionManager.isUserPermission(user, command.getPermission()) || this.permissionManager.isUserHaveGroup(user, command.getPermission())) {
                 if (!executeCommand(command, args))
                 {
                     System.out.println(prefix + "[ERROR] Can't execute command - " + name + ". Don't found the command.");
