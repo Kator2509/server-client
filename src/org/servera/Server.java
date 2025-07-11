@@ -37,16 +37,14 @@ public class Server
     public static void main(String[] args)
     {
         configurationManager = new ConfigurationManager();
-        connectorManager = new ConnectorManager();
+        connectorManager = new ConnectorManager(configurationManager);
 
-        registerModules.registerConfigurations(configurationManager);
-        registerModules.registerConnection(connectorManager, configurationManager);
         userManager = new UserManager(connectorManager.getConnect("UserDataBase"), configurationManager.getConfiguration("DefaultParameters"));
 
         dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"));
         registerModules.registerCommands(dispatcher);
         permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"), dispatcher);
-        if(!dispatcher.registerPermissionManager(permissionManager))
+        if(dispatcher.registerPermissionManager(permissionManager))
         {
             System.out.println(prefix + "[ERROR] Permissions not loaded. That can cause a problem.");
         }
@@ -57,30 +55,11 @@ public class Server
 
     private static class registerModules
     {
-        private static void registerConnection(ConnectorManager connectorManager, ConfigurationManager configurationManager)
-        {
-            connectorManager.register("UserDataBase",
-                    new Connector(
-                            JSONParser.getData(configurationManager.getConfiguration("DataBase").getDataPath("DataBase.UserDataBase").toString(), "login").toString(),
-                            JSONParser.getData(configurationManager.getConfiguration("DataBase").getDataPath("DataBase.UserDataBase").toString(), "password").toString(),
-                            JSONParser.getData(configurationManager.getConfiguration("DataBase").getDataPath("DataBase.UserDataBase").toString(), "url").toString()
-                    ));
-        }
-
         private static void registerCommands(CommandDispatcher dispatcher)
         {
             dispatcher.register(new callShutDown("shutdown", "System.shutdown"));
             dispatcher.register(new callReboot("reboot", "System.reboot"));
             System.out.println(prefix + "Registered system commands.");
-        }
-
-        private static void registerConfigurations(ConfigurationManager configurationManager)
-        {
-            configurationManager.register("DataBase", new Configuration("DBConfig.yml"));
-            configurationManager.register("DefaultParameters", new Configuration("System/Default.yml"));
-            configurationManager.register("language",
-                    new Configuration("language/" + configurationManager.getConfiguration("DefaultParameters").getDataPath("language") + ".yml"));
-            System.out.println(prefix + "Configurations loaded.");
         }
     }
 
@@ -111,27 +90,33 @@ public class Server
             {
                 serverThread.start();
                 System.out.println(prefix + "Server was offline. Starting server thread.");
+                if(dispatcherThread.isAlive())
+                {
+                    dispatcherThread.start();
+                    System.out.println(prefix + "Dispatcher was offline. Starting dispatcher thread.");
+                }
             }
             else
             {
+                Run = false;
                 System.out.println(prefix + "Reboot server thread.");
                 System.out.println(prefix + "Starting loading modules...");
                 configurationManager = new ConfigurationManager();
-                connectorManager = new ConnectorManager();
+                connectorManager = new ConnectorManager(configurationManager);
 
-                registerModules.registerConfigurations(configurationManager);
-                registerModules.registerConnection(connectorManager, configurationManager);
                 userManager = new UserManager(connectorManager.getConnect("UserDataBase"), configurationManager.getConfiguration("DefaultParameters"));
 
                 dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"));
                 registerModules.registerCommands(dispatcher);
                 permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"), dispatcher);
-                if(!dispatcher.registerPermissionManager(permissionManager))
+                if(dispatcher.registerPermissionManager(permissionManager))
                 {
                     System.out.println(prefix + "[ERROR] Permissions not loaded. That can cause a problem.");
                 }
 
-                ServerExecute.callReboot();
+                ServerExecute.run();
+                System.out.println(prefix + "Reboot success.");
+                ServerCommandDispatcher.run();
             }
             return true;
         }
@@ -175,12 +160,6 @@ public class Server
 
     private static class ServerExecute
     {
-        private static boolean reboot = false;
-        private static void callReboot()
-        {
-            reboot = true;
-        }
-
         private static void run()
         {
             serverThread = new Thread(() -> {
@@ -188,7 +167,7 @@ public class Server
                     Run = true;
                     DataInputStream in = null;
 
-                    while(Run && !reboot)
+                    while(Run)
                     {
                         //Server thread code. Connection with client. Need override for login manager.
                         server.setSoTimeout(120);
@@ -204,50 +183,16 @@ public class Server
                     }
                 } catch (SocketTimeoutException ignore) {}
                 catch (IOException e) {
-                    System.out.println(prefix + "Server stopped as crash. Trying to reboot server.");
-                    System.out.println(prefix + "If you see that cause one more. Please report as that.");
-                    System.out.println(prefix + "And call emergency stop the server.");
+                    System.out.println(prefix + "[ERROR] Server stopped as crash. Trying to reboot server.");
+                    System.out.println(prefix + "[ERROR] If you see that cause one more. Please report as that.");
+                    System.out.println(prefix + "[ERROR] And call emergency stop the server.");
                     dispatcher.runCommand("reboot", null, userManager.getUser("Console"));
                     e.getStackTrace();
-                }
-                reboot = false;
-                if(!serverThread.isAlive()) {
-                    System.out.println(prefix + "Server stopped.");
-                    if (reboot) {
-                        run();
-                        System.out.println(prefix + "Server rebooted success");
-                    }
                 }
             });
 
             serverThread.start();
             System.out.println(prefix + "Server is start. Await a command: ");
-        }
-    }
-
-    private static class ServerSetDefaultParameters{
-        private static boolean setParametersToDefault()
-        {
-            connectorManager.getConnect("UserDataBase").openConnection(connection ->
-            {
-                try {
-                    Statement var = connection.createStatement();
-                    var.execute("SELECT count(*) FROM us_users WHERE tab_num = 'T-CONSOLE' AND firstName = 'Console'");
-                    ResultSet rs = var.getResultSet();
-                    rs.next();
-                    if(!(rs.getInt(1) > 0)) {
-                        var.execute("insert into us_users (uuid, tab_num, firstname, dcre) values ('" + UUID.randomUUID() + "', 'T-CONSOLE', 'Console', now())");
-                        System.out.println(prefix + "Created user for console.");
-
-
-                    }
-                } catch (SQLException e)
-                {
-                    System.out.println(prefix + "[ERROR] Can't load a checker.");
-                    e.printStackTrace();
-                }
-            });
-            return false;
         }
     }
 }

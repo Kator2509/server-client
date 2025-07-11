@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-public class CommandDispatcher
+public class CommandDispatcher implements Dispatcher
 {
     protected Map<String, Command> commandMap = new HashMap<>();
     private static final String prefix = "[ListenerCommandDispatcher]: ";
@@ -27,18 +27,21 @@ public class CommandDispatcher
         System.out.println(prefix + "Loaded.");
     }
 
+    @Override
     public boolean registerPermissionManager(PermissionManager permissionManager)
     {
         this.permissionManager = permissionManager;
         System.out.println(prefix + "Permission load.");
-        return this.permissionManager != null;
+        return this.permissionManager == null;
     }
 
+    @Override
     public Command getCommand(String name)
     {
         return this.commandMap.get(name);
     }
 
+    @Override
     public void register(Command command)
     {
         if(!(this.commandMap.containsKey(command.getName()) || this.commandMap.containsValue(command))) {
@@ -47,6 +50,7 @@ public class CommandDispatcher
         }
     }
 
+    @Override
     public void runCommand(String name, LinkedList<String> args, User user)
     {
         Command command = commandMap.get(name);

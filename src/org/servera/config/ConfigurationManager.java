@@ -8,7 +8,11 @@ public class ConfigurationManager
     protected Map<String, Configuration> configurationMap = new HashMap<>();
     private static final String prefix = "[ConfigurationManager]: ";
 
-    public ConfigurationManager(){}
+    public ConfigurationManager()
+    {
+        loadConfigs();
+        System.out.println(prefix + "Loaded.");
+    }
 
     public ConfigurationManager(Map<String, Configuration> configurationMap)
     {
@@ -22,6 +26,14 @@ public class ConfigurationManager
             this.configurationMap.put(name, configuration);
             System.out.println(prefix + "Register configuration " + configuration.getPath());
         }
+    }
+
+    private void loadConfigs()
+    {
+        this.register("DataBase", new Configuration("DBConfig.yml"));
+        this.register("DefaultParameters", new Configuration("System/Default.yml"));
+        this.register("language",
+                new Configuration("language/" + this.getConfiguration("DefaultParameters").getDataPath("language") + ".yml"));
     }
 
     public Configuration getConfiguration(String name)

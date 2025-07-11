@@ -11,7 +11,7 @@ public class Configuration implements ConfigurationInterface
 {
     private final String path;
     private final Yaml yaml = new Yaml();
-    private Map<String, Object> data;
+    protected final Map<String, Object> data;
 
     public Configuration(String path)
     {
@@ -23,6 +23,12 @@ public class Configuration implements ConfigurationInterface
     {
         InputStream var = Server.class.getResourceAsStream("/" + getPath());
         return yaml.load(var);
+    }
+
+    @Override
+    public Object getKeyData(String container)
+    {
+        return null;
     }
 
     @Override
@@ -41,6 +47,7 @@ public class Configuration implements ConfigurationInterface
         return container.split("\\.").length > 1 ? var1 : var;
     }
 
+    @Override
     public String getPath()
     {
         return this.path;
