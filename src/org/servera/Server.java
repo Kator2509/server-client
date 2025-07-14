@@ -1,12 +1,9 @@
 package org.servera;
 
-import org.servera.DataBasePSQL.Connector;
 import org.servera.DataBasePSQL.ConnectorManager;
 import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
-import org.servera.config.Configuration;
 import org.servera.config.ConfigurationManager;
-import org.servera.config.FileManager.JSONParser;
 import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.UserManager;
 
@@ -15,12 +12,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.Scanner;
-import java.util.UUID;
 
 public class Server
 {
@@ -137,16 +130,14 @@ public class Server
 
                     System.out.print(userManager.getUser("Console").getFirstName() + ":~$ ");
 
-
-                    for (String arguments : entry.nextLine().split(" "))
-                    {
-                        if (i == 0)
-                        {
-                            command = arguments;
-                            i++;
-                        }
-                        else {
-                            var0.add(arguments);
+                    if(Run) {
+                        for (String arguments : entry.nextLine().split(" ")) {
+                            if (i == 0) {
+                                command = arguments;
+                                i++;
+                            } else {
+                                var0.add(arguments);
+                            }
                         }
                     }
 
