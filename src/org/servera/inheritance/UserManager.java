@@ -1,6 +1,7 @@
 package org.servera.inheritance;
 
 import org.servera.DataBasePSQL.Connector;
+import org.servera.config.ConfigException;
 import org.servera.config.Configuration;
 
 import java.sql.Connection;
@@ -104,9 +105,14 @@ public class UserManager
     private Integer generateTab(Connection connection) throws SQLException
     {
         boolean search = false;
-        int var;
+        int var = 0;
         do {
-            var = (int) (100 + (random.nextDouble() * 2.0) * (Math.pow(10, (int) this.configuration.getDataPath("max-size-tab")) - 100));
+            try {
+                var = (int) (100 + (random.nextDouble() * 2.0) * (Math.pow(10, (int) this.configuration.getDataPath("max-size-tab")) - 100));
+            } catch (ConfigException e) {
+                System.out.println(prefix + "Can't call a Default config.");
+                var = (int) (100 + (random.nextDouble() * 2.0) * (Math.pow(10, 7 - 100)));
+            }
             Statement var1 = connection.createStatement();
 
             String request = "Select count(*) from us_users where tab_num like '%" + var + "%'";
@@ -114,7 +120,7 @@ public class UserManager
             var1.execute(request);
             ResultSet rs = var1.getResultSet();
             rs.next();
-            search = rs.getInt(1) > 0 ? true : false;
+            search = rs.getInt(1) > 0;
         } while (search);
         return var;
     }

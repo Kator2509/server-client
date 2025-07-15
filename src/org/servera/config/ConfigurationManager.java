@@ -30,10 +30,15 @@ public class ConfigurationManager
 
     private void loadConfigs()
     {
+        try {
         this.register("DataBase", new Configuration("DBConfig.yml"));
         this.register("DefaultParameters", new Configuration("System/Default.yml"));
-        this.register("language",
-                new Configuration("language/" + this.getConfiguration("DefaultParameters").getDataPath("language") + ".yml"));
+            this.register("language",
+                    new Configuration("language/" + this.getConfiguration("DefaultParameters").getDataPath("language") + ".yml"));
+        } catch (ConfigException e) {
+            System.out.println(prefix + "[ERROR] Can't loaded a language config.");
+            System.out.println(e.getMessage());
+        }
     }
 
     public Configuration getConfiguration(String name)

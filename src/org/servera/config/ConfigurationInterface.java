@@ -1,10 +1,13 @@
 package org.servera.config;
 
+import java.util.List;
+
 public interface ConfigurationInterface
 {
     //Получить данные ячейки.
-    Object getDataPath(String container);
-    Object getKeyData(String container);
+    Object getDataPath(String container) throws ConfigException;
+    //Получение списка ключей.
+    List<String> getKeyDataList(String container) throws ConfigException;
     //Получить путь к конфигу.
     String getPath();
 }

@@ -1,5 +1,6 @@
 package org.servera.commands;
 
+import org.servera.config.ConfigException;
 import org.servera.config.Configuration;
 import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.User;
@@ -72,7 +73,12 @@ public class CommandDispatcher implements Dispatcher
         {
             System.out.println(prefix + "[ERROR] Can't execute command - " + name + ". Don't found the command.");
             if(!foundCommand(name).isEmpty()) {
-                System.out.println(prefix + "Maybe you mean \"" + configuration.getDataPath(foundCommand(name)) + "\"");
+                try {
+                    System.out.println(prefix + "Maybe you mean \"" + configuration.getDataPath(foundCommand(name)) + "\"");
+                } catch (ConfigException e) {
+                    System.out.println(prefix + "Can't call a message from language config. Exist a message?");
+                    System.out.println(prefix + e.getMessage());
+                }
             }
         }
     }

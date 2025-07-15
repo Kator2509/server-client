@@ -1,5 +1,6 @@
 package org.servera.DataBasePSQL;
 
+import org.servera.config.ConfigException;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.JSONParser;
 
@@ -15,7 +16,6 @@ public class ConnectorManager
     public ConnectorManager(ConfigurationManager configurationManager){
         this.configurationManager = configurationManager;
         loadConfig();
-        System.out.println(prefix + "Loaded.");
     }
 
     public ConnectorManager(Map<String, Connector> connectorMap, ConfigurationManager configurationManager)
@@ -23,7 +23,6 @@ public class ConnectorManager
         this.configurationManager = configurationManager;
         this.connectorMap = connectorMap;
         loadConfig();
-        System.out.println(prefix + "Loaded.");
     }
 
     public void register(String name, Connector connector)
@@ -37,12 +36,20 @@ public class ConnectorManager
 
     private void loadConfig()
     {
-        this.register("UserDataBase",
-                new Connector(
-                        JSONParser.getData(this.configurationManager.getConfiguration("DataBase").getDataPath("DataBase.UserDataBase").toString(), "login").toString(),
-                        JSONParser.getData(this.configurationManager.getConfiguration("DataBase").getDataPath("DataBase.UserDataBase").toString(), "password").toString(),
-                        JSONParser.getData(this.configurationManager.getConfiguration("DataBase").getDataPath("DataBase.UserDataBase").toString(), "url").toString()
+        try {
+            for (String var : this.configurationManager.getConfiguration("DataBase").getKeyDataList("DataBase"))
+            {
+                this.register(var, new Connector(
+                        JSONParser.getData(this.configurationManager.getConfiguration("DataBase").getDataPath("DataBase." + var).toString(), "login").toString(),
+                        JSONParser.getData(this.configurationManager.getConfiguration("DataBase").getDataPath("DataBase." + var).toString(), "password").toString(),
+                        JSONParser.getData(this.configurationManager.getConfiguration("DataBase").getDataPath("DataBase." + var).toString(), "url").toString()
                 ));
+            }
+            System.out.println(prefix + "Loaded success.");
+        } catch (ConfigException e) {
+            System.out.println(prefix + "[ERROR] Loaded with errors.");
+            System.out.println(e.getMessage());
+        }
     }
 
     public Connector getConnect(String name)

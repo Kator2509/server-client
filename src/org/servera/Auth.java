@@ -2,11 +2,10 @@ package org.servera;
 
 public class Auth
 {
+    private static final String prefix = "[ListenerAuthUser]: ";
+
     public Auth(){
-        AuthParser parser = new AuthParser(new Thread(() ->
-        {
-            
-        }));
+        AuthParser.callParser();
     }
 
     private static class AuthParser
@@ -16,6 +15,16 @@ public class Auth
         private AuthParser(Thread authThread)
         {
             this.authThread = authThread;
+            this.authThread.start();
+            System.out.println(prefix + "Loaded. Await a users.");
+        }
+
+        private static void callParser()
+        {
+            AuthParser parser = new AuthParser(new Thread(() ->
+            {
+
+            }));
         }
     }
 }

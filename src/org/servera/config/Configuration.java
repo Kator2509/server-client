@@ -5,6 +5,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Configuration implements ConfigurationInterface
@@ -26,13 +27,23 @@ public class Configuration implements ConfigurationInterface
     }
 
     @Override
-    public Object getKeyData(String container)
-    {
-        return null;
+    public List<String> getKeyDataList(String container) throws ConfigException {
+        Object var = this.data.get(container.split("\\.")[0]), var1 = null;
+        int i = 1;
+        if(container.split("\\.").length > 1)
+        {
+            do{
+                var1 = ((HashMap<String, Object>) var).get(container.split("\\.")[i]);
+                var = var1;
+                i++;
+            } while (i < container.split("\\.").length);
+        }
+        return container.split("\\.").length > 1 ? ((HashMap<String, Object>) var1).keySet().stream().toList()
+                : ((HashMap<String, Object>) var).keySet().stream().toList();
     }
 
     @Override
-    public Object getDataPath(String container)
+    public Object getDataPath(String container) throws ConfigException
     {
         Object var = this.data.get(container.split("\\.")[0]), var1 = null;
         int i = 1;
