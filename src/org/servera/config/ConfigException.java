@@ -2,7 +2,12 @@ package org.servera.config;
 
 public class ConfigException extends Exception
 {
-    public ConfigException(String message) {
+    public ConfigException() {
+        super("Configuration path is empty.");
+    }
+
+    public ConfigException(String message)
+    {
         super(message);
     }
 }

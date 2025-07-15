@@ -4,9 +4,7 @@ public class Auth
 {
     private static final String prefix = "[ListenerAuthUser]: ";
 
-    public Auth(){
-        AuthParser.callParser();
-    }
+    public Auth(){}
 
     private static class AuthParser
     {

@@ -32,7 +32,7 @@ public class Server
         configurationManager = new ConfigurationManager();
         connectorManager = new ConnectorManager(configurationManager);
 
-        userManager = new UserManager(connectorManager.getConnect("UserDataBase"), configurationManager.getConfiguration("DefaultParameters"));
+        userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
 
         dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"));
         registerModules.registerCommands(dispatcher);
@@ -41,6 +41,7 @@ public class Server
         {
             System.out.println(prefix + "[ERROR] Permissions not loaded. That can cause a problem.");
         }
+
 
         ServerExecute.run();
         ServerCommandDispatcher.run();
@@ -52,6 +53,7 @@ public class Server
         {
             dispatcher.register(new callShutDown("shutdown", "System.shutdown"));
             dispatcher.register(new callReboot("reboot", "System.reboot"));
+            dispatcher.register(new UserManager.UserCommand("user", connectorManager.getConnect("UserDataBase"), configurationManager.getConfiguration("DefaultParameters"), permissionManager));
             System.out.println(prefix + "Registered system commands.");
         }
     }
@@ -91,13 +93,18 @@ public class Server
             }
             else
             {
-                Run = false;
-                System.out.println(prefix + "Reboot server thread.");
+                System.out.println(prefix + "Reboot server modules.");
+                configurationManager = null;
+                connectorManager = null;
+                userManager = null;
+                dispatcher = null;
+                permissionManager = null;
+
                 System.out.println(prefix + "Starting loading modules...");
                 configurationManager = new ConfigurationManager();
                 connectorManager = new ConnectorManager(configurationManager);
 
-                userManager = new UserManager(connectorManager.getConnect("UserDataBase"), configurationManager.getConfiguration("DefaultParameters"));
+                userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
 
                 dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"));
                 registerModules.registerCommands(dispatcher);
@@ -106,10 +113,7 @@ public class Server
                 {
                     System.out.println(prefix + "[ERROR] Permissions not loaded. That can cause a problem.");
                 }
-
-                ServerExecute.run();
                 System.out.println(prefix + "Reboot success.");
-                ServerCommandDispatcher.run();
             }
             return true;
         }
@@ -127,17 +131,14 @@ public class Server
                     String command = "";
                     int i = 0;
 
-
                     System.out.print(userManager.getUser("Console").getFirstName() + ":~$ ");
 
-                    if(Run) {
-                        for (String arguments : entry.nextLine().split(" ")) {
-                            if (i == 0) {
-                                command = arguments;
-                                i++;
-                            } else {
-                                var0.add(arguments);
-                            }
+                    for (String arguments : entry.nextLine().split(" ")) {
+                        if (i == 0) {
+                            command = arguments;
+                            i++;
+                        } else {
+                            var0.add(arguments);
                         }
                     }
 
