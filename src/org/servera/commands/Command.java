@@ -1,19 +1,23 @@
 package org.servera.commands;
 
+import org.servera.inheritance.User;
+import org.servera.inheritance.UserManager;
+
 import java.util.LinkedList;
+import java.util.List;
 
 public abstract class Command implements CommandInterface {
     private final String name;
     private LinkedList<String> arguments;
-    protected String permission;
+    protected List<String> permission;
 
-    public Command(String name, String permission)
+    public Command(String name, List<String> permission)
     {
         this.permission = permission;
         this.name = name;
     }
 
-    public abstract boolean run();
+    public abstract boolean run(User user);
 
     @Override
     public void setArguments(LinkedList<String> arguments)
@@ -34,7 +38,7 @@ public abstract class Command implements CommandInterface {
     }
 
     @Override
-    public String getPermission()
+    public List<String> getPermission()
     {
         return this.permission;
     }

@@ -12,6 +12,7 @@ public class PermissionManager
 {
     protected CommandDispatcher dispatcher;
     private final Connector connector;
+    private boolean result = false;
     private static final String prefix = "[PermissionManager]: ";
 
     public PermissionManager(Connector connector, CommandDispatcher dispatcher)
@@ -22,9 +23,6 @@ public class PermissionManager
 
     public boolean isUserPermission(User user, String path)
     {
-        var ref = new Object() {
-            boolean result = false;
-        };
         this.connector.openConnection(connection ->
         {
             try {
@@ -36,31 +34,29 @@ public class PermissionManager
                 {
                     int index = path.lastIndexOf('.');
                     var.execute("SELECT count(*) FROM us_perm WHERE us_tab = '" + user.getTab() + "' AND us_permission in (select index from perm where permission = '" +
-                            path + "' OR permission = '" + path.substring(0,index) + ".*')");
+                            path + "' OR permission = '" + (path.contains(".") ? path.substring(0,index) : path) + ".*')");
                     rs = var.getResultSet();
                     rs.next();
                     if(rs.getInt(1) > 0)
                     {
-                        ref.result = true;
+                        result = true;
                     }
                 }
                 else
                 {
                     System.out.println(prefix + "Permission don't found. Permission already registered?");
-                    ref.result = false;
+                    result = false;
                 }
             } catch (SQLException e) {
                 System.out.println(prefix + "[ERROR] Can't send the request to data base.");
             }
         });
-        return ref.result;
+        return result;
     }
 
     public boolean isUserHaveGroup(User user, String path)
     {
-        var ref = new Object() {
-            boolean result = false;
-        };
+        result = false;
         this.connector.openConnection(connection ->
         {
             try {
@@ -86,22 +82,22 @@ public class PermissionManager
                         rs.next();
                         if(rs.getInt(1) > 0)
                         {
-                            ref.result = true;
+                            result = true;
                         }
                     } else
                     {
-                        System.out.println(prefix + "Permission don't found. Permission already registered?");
-                        ref.result = false;
+                        System.out.println(prefix + "[ERROR] Permission don't found. Permission already registered?");
+                        result = false;
                     }
                 }
                 else {
-                    ref.result = false;
+                    result = false;
                 }
             } catch (SQLException e) {
                 System.out.println(prefix + "[ERROR] Can't send the request to data base.");
-                e.printStackTrace();
+                System.out.println(prefix + "[ERROR] " + e.getMessage());
             }
         });
-        return ref.result;
+        return result;
     }
 }

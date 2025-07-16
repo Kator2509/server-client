@@ -22,10 +22,10 @@ public class UserManager
         try {
             this.connector = connector;
             loadUsers();
-            System.out.println(prefix + "Loaded.");
+            System.out.println(prefix + "Loaded success.");
         } catch (SQLException e)
         {
-            System.out.println(prefix + "[ERROR] Can't load a module or loaded with errors...");
+            System.out.println(prefix + "[ERROR] Loaded with errors...");
         }
     }
 
@@ -68,35 +68,35 @@ public class UserManager
         protected PermissionManager permissionManager;
 
         public UserCommand(String name, Connector connector, Configuration configuration, PermissionManager permissionManager) {
-            super(name, "user.change");
+            super(name, new ArrayList<>(List.of("user", "user.remove", "user.update", "user.create")));
             this.configuration = configuration;
             this.permissionManager = permissionManager;
             this.connector = connector;
         }
 
         @Override
-        public boolean run() {
+        public boolean run(User user) {
             this.connector.openConnection(connection -> {
-                if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("remove")) {
-                    if (!(this.getArguments().size() < 2)) {
-                        removeUser(this.getArguments().get(1));
-                        success = true;
-                    }
-                } else if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("update")) {
-                    if (!(this.getArguments().size() < 2)) {
-                        callUpdateUser(this.getArguments().get(1));
-                        success = true;
-                    }
-                } else if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("create")) {
-                    if (!(this.getArguments().size() < 2)) {
-                        if(this.getArguments().size() >= 2) {
-                            createUser(this.getArguments().get(1), new String[]{this.getArguments().get(2), this.getArguments().get(3)});
+                if (this.getArguments() != null) {
+                    if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("remove")) {
+                        if (!(this.getArguments().size() < 2) && this.permissionManager.isUserPermission(user, "user.remove")) {
+                            removeUser(this.getArguments().get(1));
+                            success = true;
                         }
-                        else
-                        {
-                            createUser(this.getArguments().get(1), null);
+                    } else if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("update")) {
+                        if (!(this.getArguments().size() < 2) && this.permissionManager.isUserPermission(user, "user.update")) {
+                            callUpdateUser(this.getArguments().get(1));
+                            success = true;
                         }
-                        success = true;
+                    } else if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("create")) {
+                        if (!(this.getArguments().size() < 2) && this.permissionManager.isUserPermission(user, "user.create")) {
+                            if (this.getArguments().size() > 2) {
+                                createUser(this.getArguments().get(1), new String[]{this.getArguments().get(2), this.getArguments().get(3)});
+                            } else {
+                                createUser(this.getArguments().get(1), new String[]{});
+                            }
+                            success = true;
+                        }
                     }
                 }
             });
@@ -114,11 +114,14 @@ public class UserManager
                     rs.next();
                     if(rs.getInt(1) == 0)
                     {
-                        String var1 = "INSERT INTO us_users (uuid, tab_num, firstname, secondname, dcre, \"group\") VALUES ('" + UUID.randomUUID() +
-                                "', 'T-" + generateTab(connection) + "', '" + name + "', '" + (arguments.length == 2 ? Arrays.stream(arguments).toList().getFirst() : "null") +
-                                "', now(), '" + ((arguments.length > 0) ? Arrays.stream(arguments).toList().getLast() : "null") + "')";
+                        UUID uuid = UUID.randomUUID();
+                        Integer tab = generateTab(connection);
+                        String var1 = "INSERT INTO us_users (uuid, tab_num, firstname, secondname, dcre, \"group\") VALUES ('" + uuid +
+                                "', 'T-" + tab + "', '" + name + "' " + (arguments.length == 2 ? ", '" + Arrays.stream(arguments).toList().getFirst() + "'" : ", null") +
+                                ", now()" + ((arguments.length > 0) ? ", '" + Arrays.stream(arguments).toList().getLast() + "'" : ", null") + ")"; //ТРЕБУЕТСЯ ПЕРЕПИСЬ
                         Statement var = connection.createStatement();
                         var.execute(var1);
+                        userMap.put(name, new User(uuid, String.valueOf(tab), name));
                         var.close();
                         System.out.println(prefix + "User " + name + " created.");
                     }
@@ -128,6 +131,7 @@ public class UserManager
                     }
                 } catch (SQLException e) {
                     System.out.println(prefix + "[ERROR] Can't create a user - " + name);
+                    System.out.println(prefix + "[ERROR] " + e.getMessage());
                 }
             });
         }
@@ -138,7 +142,7 @@ public class UserManager
             {
                 try{
                     Statement var = connection.createStatement();
-                    String request = "SELECT UUID, TAB_NUM, FIRSTNAME, SECONDNAME, \"group\" FROM US_USERS WHERE FIRSTNAME = \"" + name + "\"";
+                    String request = "SELECT UUID, TAB_NUM, FIRSTNAME, SECONDNAME, \"group\" FROM US_USERS WHERE FIRSTNAME = '" + name + "'";
 
                     var.execute(request);
 
@@ -156,7 +160,7 @@ public class UserManager
                     }
                     else
                     {
-                        System.out.println(prefix + " User " + name + " not found.");
+                        System.out.println(prefix + "User " + name + " not found.");
                     }
                 } catch (SQLException e)
                 {
@@ -172,17 +176,22 @@ public class UserManager
             {
                 try{
                     Statement var = connection.createStatement();
-                    String request = "SELECT count(*) FROM US_USERS WHERE FIRSTNAME = \"" + name + "\"";
+                    String request = "SELECT count(*) FROM US_USERS WHERE FIRSTNAME = '" + name + "'";
 
                     var.execute(request);
                     ResultSet rs = var.getResultSet();
+                    rs.next();
 
                     if(rs.getInt(1) > 0 && userMap.containsKey(name))
                     {
-                        var.execute("DELETE FROM US_USERS WHERE FIRSTNAME = " + name);
+                        var.execute("DELETE FROM US_USERS WHERE FIRSTNAME = '" + name + "'");
                         userMap.remove(name);
 
                         System.out.println(prefix + "User " + name + " deleted.");
+                    }
+                    else
+                    {
+                        System.out.println(prefix + "User " + name + " not found.");
                     }
                 } catch (SQLException e)
                 {
@@ -194,8 +203,8 @@ public class UserManager
 
         private Integer generateTab(Connection connection) throws SQLException
         {
-            boolean search = false;
-            int var = 0;
+            boolean search;
+            int var;
             do {
                 try {
                     var = (int) (100 + (random.nextDouble() * 2.0) * (Math.pow(10, (int) this.configuration.getDataPath("max-size-tab")) - 100));

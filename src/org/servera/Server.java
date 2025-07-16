@@ -5,6 +5,7 @@ import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
 import org.servera.config.ConfigurationManager;
 import org.servera.inheritance.SPermission.PermissionManager;
+import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
 
 import java.io.DataInputStream;
@@ -12,7 +13,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Server
@@ -35,8 +38,8 @@ public class Server
         userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
 
         dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"));
-        registerModules.registerCommands(dispatcher);
         permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"), dispatcher);
+        registerModules.registerCommands(dispatcher);
         if(dispatcher.registerPermissionManager(permissionManager))
         {
             System.out.println(prefix + "[ERROR] Permissions not loaded. That can cause a problem.");
@@ -51,21 +54,22 @@ public class Server
     {
         private static void registerCommands(CommandDispatcher dispatcher)
         {
-            dispatcher.register(new callShutDown("shutdown", "System.shutdown"));
-            dispatcher.register(new callReboot("reboot", "System.reboot"));
-            dispatcher.register(new UserManager.UserCommand("user", connectorManager.getConnect("UserDataBase"), configurationManager.getConfiguration("DefaultParameters"), permissionManager));
+            dispatcher.register(new callShutDown("shutdown", new ArrayList<>(List.of("System.shutdown"))));
+            dispatcher.register(new callReboot("reboot", new ArrayList<>(List.of("System.reboot"))));
+            dispatcher.register(new UserManager.UserCommand("user", connectorManager.getConnect("UserDataBase"),
+                    configurationManager.getConfiguration("DefaultParameters"), permissionManager));
             System.out.println(prefix + "Registered system commands.");
         }
     }
 
     private static class callShutDown extends Command
     {
-        public callShutDown(String name, String permission) {
+        public callShutDown(String name, List<String> permission) {
             super(name, permission);
         }
 
         @Override
-        public boolean run() {
+        public boolean run(User user) {
             Run = false;
             dispatcher = null;
             userManager = null;
@@ -76,11 +80,11 @@ public class Server
 
     private static class callReboot extends Command
     {
-        public callReboot(String name, String permission) {
+        public callReboot(String name, List<String> permission) {
             super(name, permission);
         }
         @Override
-        public boolean run() {
+        public boolean run(User user) {
             if(serverThread.isAlive())
             {
                 serverThread.start();

@@ -54,30 +54,36 @@ public class CommandDispatcher implements Dispatcher
     @Override
     public void runCommand(String name, LinkedList<String> args, User user)
     {
-        Command command = commandMap.get(name);
-        if(!args.isEmpty()) {
-            command.setArguments(args);
-        }
         if(commandMap.containsKey(name))
         {
-            if(this.permissionManager.isUserPermission(user, command.getPermission()) || this.permissionManager.isUserHaveGroup(user, command.getPermission())) {
-                if (!executeCommand(command))
+            Command command = commandMap.get(name);
+            if(!args.isEmpty()) {
+                command.setArguments(args);
+            }
+            if(this.permissionManager.isUserPermission(user, command.getPermission().getFirst()) || this.permissionManager.isUserHaveGroup(user, command.getPermission().getFirst())) {
+                if (!executeCommand(command, user))
                 {
                     System.out.println(prefix + "Can't execute command - " + name + ".");
+                    try {
+                        System.out.println(prefix + configuration.getDataPath(foundCommand(name)));
+                    } catch (ConfigException e) {
+                        System.out.println(prefix + "[ERROR] Can't call a config.");
+                        System.out.println(prefix + "[ERROR] " + e.getMessage());
+                    }
                 }
             }
             else {
                 System.out.println(prefix + "You don't have permission.");
             }
-        }else
+        } else
         {
             System.out.println(prefix + "[ERROR] Can't execute command - " + name + ". Don't found the command.");
             if(!foundCommand(name).isEmpty()) {
                 try {
                     System.out.println(prefix + "Maybe you mean \"" + configuration.getDataPath(foundCommand(name)) + "\"");
                 } catch (ConfigException e) {
-                    System.out.println(prefix + "Can't call a message from language config. Exist a message?");
-                    System.out.println(prefix + e.getMessage());
+                    System.out.println(prefix + "[ERROR] Can't call a message from language config. Exist a message?");
+                    System.out.println(prefix + "[ERROR] " + e.getMessage());
                 }
             }
         }
@@ -98,9 +104,9 @@ public class CommandDispatcher implements Dispatcher
         return "";
     }
 
-    private boolean executeCommand(Command command)
+    private boolean executeCommand(Command command, User user)
     {
         System.out.println(prefix + "Executed command - " + command.getName());
-        return command.run();
+        return command.run(user);
     }
 }

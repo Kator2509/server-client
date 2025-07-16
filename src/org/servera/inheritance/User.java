@@ -1,5 +1,7 @@
 package org.servera.inheritance;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.UUID;
 
 public class User
@@ -7,10 +9,17 @@ public class User
     protected UUID uuid;
     private String firstName, secondName, tab;
 
-    public User(UUID uuid, String tab, String firstName, String secondName)
+    public User(UUID uuid, String tab, String firstName, @Nullable String secondName)
     {
         this.firstName = firstName;
         this.secondName = secondName;
+        this.uuid = uuid;
+        this.tab = tab;
+    }
+
+    public User(UUID uuid, String tab, String firstName)
+    {
+        this.firstName = firstName;
         this.uuid = uuid;
         this.tab = tab;
     }
