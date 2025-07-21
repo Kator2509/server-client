@@ -1,5 +1,6 @@
 package org.servera.config;
 
+import org.jetbrains.annotations.NotNull;
 import org.servera.Server;
 import org.yaml.snakeyaml.Yaml;
 
@@ -62,5 +63,11 @@ public class Configuration implements ConfigurationInterface
     public String getPath()
     {
         return this.path;
+    }
+
+    @Override
+    public boolean setDataPath(@NotNull String container, @NotNull Object newData) throws ConfigException {
+
+        return false;
     }
 }

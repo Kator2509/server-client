@@ -1,0 +1,6 @@
+shutdown: "shutdown - stop"
+reboot: "reboot - reload system"
+user: "user: \n
+          - create <UserName> <SecondName> <Group> Create user. Filling SecondName and Group is not required.\n
+          - update <UserName> Update user in loaded system.\n
+          - remove <UserName> Remove user."

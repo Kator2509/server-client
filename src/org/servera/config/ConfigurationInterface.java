@@ -10,4 +10,5 @@ public interface ConfigurationInterface
     List<String> getKeyDataList(String container) throws ConfigException;
     //Получить путь к конфигу.
     String getPath();
+    boolean setDataPath(String container, Object newData) throws ConfigException;
 }

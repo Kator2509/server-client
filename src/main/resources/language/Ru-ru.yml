@@ -1,3 +1,0 @@
-shutdown: "shutdown - завершение работы"
-reboot: "reboot - перезапуск системы"
-user: "user <create|update|remove> (<UserName> | <SecondName> <Group>) - Редактирование пользователей."

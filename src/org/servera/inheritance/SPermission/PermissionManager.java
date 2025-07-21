@@ -1,29 +1,31 @@
 package org.servera.inheritance.SPermission;
 
 import org.servera.DataBasePSQL.Connector;
-import org.servera.commands.CommandDispatcher;
+import org.servera.commands.Command;
 import org.servera.inheritance.User;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class PermissionManager
 {
-    protected CommandDispatcher dispatcher;
-    private final Connector connector;
-    private boolean result = false;
+    private static Connector connector;
+    private static boolean result = false;
     private static final String prefix = "[PermissionManager]: ";
 
-    public PermissionManager(Connector connector, CommandDispatcher dispatcher)
+    public PermissionManager(Connector connector)
     {
-        this.connector = connector;
-        this.dispatcher = dispatcher;
+        PermissionManager.connector = connector;
     }
 
-    public boolean isUserPermission(User user, String path)
+    public static boolean isUserPermission(User user, String path)
     {
-        this.connector.openConnection(connection ->
+        result = false;
+        PermissionManager.connector.openConnection(connection ->
         {
             try {
                 Statement var = connection.createStatement();
@@ -54,10 +56,10 @@ public class PermissionManager
         return result;
     }
 
-    public boolean isUserHaveGroup(User user, String path)
+    public static boolean isUserHaveGroup(User user, String path)
     {
         result = false;
-        this.connector.openConnection(connection ->
+        PermissionManager.connector.openConnection(connection ->
         {
             try {
                 Statement var = connection.createStatement();
@@ -99,5 +101,57 @@ public class PermissionManager
             }
         });
         return result;
+    }
+
+    public static class PermissionCMD extends Command
+    {
+        protected Connector connector;
+        private boolean success;
+
+        public PermissionCMD(String name, Connector connector) {
+            super(name, new ArrayList<>(List.of("permission.create", "permission.remove")));
+            this.connector = connector;
+        }
+
+        @Override
+        public boolean run(User user) {
+            success = false;
+            if(!this.getArguments().isEmpty()) {
+                if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("remove")) {
+                    return removePermission(this.getArguments().get(1).toLowerCase(Locale.ROOT));
+                } else if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("create")) {
+                    return createPermission(this.getArguments().get(1).toLowerCase(Locale.ROOT));
+                }
+            }
+            return false;
+        }
+
+        private boolean createPermission(String name)
+        {
+            this.connector.openConnection(connection ->
+            {
+                try {
+                    connection.createStatement().execute("INSERT INTO perm (\"permission\", dcre) values ('" + name + "', now())");
+                    success = true;
+                } catch (SQLException e) {
+                    System.out.println(prefix + "[ERROR] " + e.getMessage());
+                }
+            });
+            return success;
+        }
+
+        private boolean removePermission(String name)
+        {
+            this.connector.openConnection(connection ->
+            {
+                try {
+                    connection.createStatement().execute("DELETE FROM perm WHERE \"permission\" = '" + name + "'");
+                } catch (SQLException e) {
+                    System.out.println(prefix + "[ERROR] " + e.getMessage());
+                }
+                success = true;
+            });
+            return success;
+        }
     }
 }

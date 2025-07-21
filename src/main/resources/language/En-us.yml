@@ -1,3 +1,0 @@
-shutdown: "shutdown - stop"
-reboot: "reboot - reload system"
-user: "user <create|update|remove> (<UserName> | <SecondName> <Group>) - Change user."

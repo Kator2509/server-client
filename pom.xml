@@ -47,6 +47,13 @@
                                     <include>**/*.yml</include>
                                 </includes>
                             </resource>
+                            <resource>
+                                <directory>src/main/crypto</directory>
+                                <filtering>true</filtering>
+                                <includes>
+                                    <include>**/*.yaml</include>
+                                </includes>
+                            </resource>
                         </resources>
                     </configuration>
                 </execution>

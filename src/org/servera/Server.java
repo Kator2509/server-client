@@ -3,7 +3,10 @@ package org.servera;
 import org.servera.DataBasePSQL.ConnectorManager;
 import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
+import org.servera.commands.CommandException;
 import org.servera.config.ConfigurationManager;
+import org.servera.config.FileManager.ConfigurationFileManager;
+import org.servera.crypto.ServerCryptoProvider;
 import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
@@ -26,6 +29,7 @@ public class Server
     protected static ConfigurationManager configurationManager;
     protected static ConnectorManager connectorManager;
     protected static PermissionManager permissionManager;
+    protected static ConfigurationFileManager configurationFileManager;
     protected static Thread serverThread;
     protected static Thread dispatcherThread;
     private static final String prefix = "[ServerThread]: ";
@@ -33,18 +37,27 @@ public class Server
     public static void main(String[] args)
     {
         configurationManager = new ConfigurationManager();
+        configurationFileManager = new ConfigurationFileManager();
         connectorManager = new ConnectorManager(configurationManager);
 
         userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
 
-        dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"));
-        permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"), dispatcher);
+        permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"));
+        dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager);
         registerModules.registerCommands(dispatcher);
-        if(dispatcher.registerPermissionManager(permissionManager))
-        {
-            System.out.println(prefix + "[ERROR] Permissions not loaded. That can cause a problem.");
-        }
 
+
+        /*
+        * TEST - ZONE
+        * */
+        new ServerCryptoProvider();
+
+
+
+
+        /*
+         * Finally.
+         * */
 
         ServerExecute.run();
         ServerCommandDispatcher.run();
@@ -57,7 +70,8 @@ public class Server
             dispatcher.register(new callShutDown("shutdown", new ArrayList<>(List.of("System.shutdown"))));
             dispatcher.register(new callReboot("reboot", new ArrayList<>(List.of("System.reboot"))));
             dispatcher.register(new UserManager.UserCommand("user", connectorManager.getConnect("UserDataBase"),
-                    configurationManager.getConfiguration("DefaultParameters"), permissionManager));
+                    configurationManager.getConfiguration("DefaultParameters")));
+            dispatcher.register(new PermissionManager.PermissionCMD("permission", connectorManager.getConnect("UserDataBase")));
             System.out.println(prefix + "Registered system commands.");
         }
     }
@@ -110,13 +124,14 @@ public class Server
 
                 userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
 
-                dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"));
+                permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"));
+                dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager);
                 registerModules.registerCommands(dispatcher);
-                permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"), dispatcher);
-                if(dispatcher.registerPermissionManager(permissionManager))
-                {
-                    System.out.println(prefix + "[ERROR] Permissions not loaded. That can cause a problem.");
-                }
+
+                System.out.println(prefix + "Trying to reboot a server thread...");
+                ServerExecute.callReboot = true;
+                ServerExecute.run();
+                ServerExecute.callReboot = false;
                 System.out.println(prefix + "Reboot success.");
             }
             return true;
@@ -127,11 +142,12 @@ public class Server
     {
         private static void run()
         {
+            LinkedList<String> var0 = new LinkedList<>();
             dispatcherThread = new Thread(() -> {
                 Scanner entry = new Scanner(System.in);
                 while(Run)
                 {
-                    LinkedList<String> var0 = new LinkedList<>();
+                    var0.clear();
                     String command = "";
                     int i = 0;
 
@@ -146,7 +162,12 @@ public class Server
                         }
                     }
 
-                    dispatcher.runCommand(command, var0, userManager.getUser("Console"));
+                    try {
+                        dispatcher.runCommand(command, var0, userManager.getUser("Console"));
+                    } catch (CommandException e) {
+                        System.out.println(prefix + "[ERROR] Command running with errors.");
+                        System.out.println(prefix + "[ERROR] " + e.getMessage());
+                    }
                 }
             });
 
@@ -156,6 +177,8 @@ public class Server
 
     private static class ServerExecute
     {
+        private static boolean callReboot = false;
+
         private static void run()
         {
             serverThread = new Thread(() -> {
@@ -163,7 +186,7 @@ public class Server
                     Run = true;
                     DataInputStream in = null;
 
-                    while(Run)
+                    while(Run && !callReboot)
                     {
                         //Server thread code. Connection with client. Need override for login manager.
                         server.setSoTimeout(120);
@@ -182,13 +205,21 @@ public class Server
                     System.out.println(prefix + "[ERROR] Server stopped as crash. Trying to reboot server.");
                     System.out.println(prefix + "[ERROR] If you see that cause one more. Please report as that.");
                     System.out.println(prefix + "[ERROR] And call emergency stop the server.");
-                    dispatcher.runCommand("reboot", null, userManager.getUser("Console"));
-                    e.getStackTrace();
+                    System.out.println(prefix + "[ERROR] " + e.getMessage());
+                    try {
+                        dispatcher.runCommand("reboot", null, userManager.getUser("Console"));
+                    } catch (CommandException ex) {
+                        System.out.println(prefix + "[ERROR] Can't reboot server at error. Stopping thread.");
+                        System.out.println(prefix + "[ERROR] " + ex.getMessage());
+                        System.exit(1);
+                    }
                 }
             });
-
+            if (callReboot)
+            {
+                System.out.println(prefix + "Server thread rebooted.");
+            }
             serverThread.start();
-            System.out.println(prefix + "Server is start. Await a command: ");
         }
     }
 }

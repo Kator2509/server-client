@@ -1,0 +1,14 @@
+shutdown: "shutdown - завершение работы"
+reboot: "reboot - перезапуск системы"
+user: "user: \n
+          - create <UserName> <SecondName> <Group> Создание пользователя. Заполнение SecondName и Group необязательно.\n
+          - update <UserName> Перевыгрузка пользователя в систему.\n
+          - remove <UserName> Удаление пользователя. \n
+          - grant <UserName> <Permission> Наделение прав пользователя."
+permission: "permission: \n
+          - create <Permission> Создание прав. \n
+          - remove <Permission> Удаление прав."
+group: "group: \n
+          - create <GroupName> Создание группы. \n
+          - remove <GroupName> Удаление группы. \n
+          - grant <GroupName> <Permission> Наделение прав группы."

@@ -4,13 +4,14 @@ import org.servera.DataBasePSQL.Connector;
 import org.servera.commands.Command;
 import org.servera.config.ConfigException;
 import org.servera.config.Configuration;
-import org.servera.inheritance.SPermission.PermissionManager;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
+
+import static org.servera.inheritance.SPermission.PermissionManager.isUserPermission;
 
 public class UserManager
 {
@@ -65,31 +66,29 @@ public class UserManager
         private final Random random = new Random();
         private boolean success = false;
         protected Configuration configuration;
-        protected PermissionManager permissionManager;
 
-        public UserCommand(String name, Connector connector, Configuration configuration, PermissionManager permissionManager) {
+        public UserCommand(String name, Connector connector, Configuration configuration) {
             super(name, new ArrayList<>(List.of("user", "user.remove", "user.update", "user.create")));
             this.configuration = configuration;
-            this.permissionManager = permissionManager;
             this.connector = connector;
         }
 
         @Override
         public boolean run(User user) {
             this.connector.openConnection(connection -> {
-                if (this.getArguments() != null) {
+                if (!this.getArguments().isEmpty()) {
                     if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("remove")) {
-                        if (!(this.getArguments().size() < 2) && this.permissionManager.isUserPermission(user, "user.remove")) {
+                        if (!(this.getArguments().size() < 2) && isUserPermission(user, "user.remove")) {
                             removeUser(this.getArguments().get(1));
                             success = true;
                         }
                     } else if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("update")) {
-                        if (!(this.getArguments().size() < 2) && this.permissionManager.isUserPermission(user, "user.update")) {
+                        if (!(this.getArguments().size() < 2) && isUserPermission(user, "user.update")) {
                             callUpdateUser(this.getArguments().get(1));
                             success = true;
                         }
                     } else if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("create")) {
-                        if (!(this.getArguments().size() < 2) && this.permissionManager.isUserPermission(user, "user.create")) {
+                        if (!(this.getArguments().size() < 2) && isUserPermission(user, "user.create")) {
                             if (this.getArguments().size() > 2) {
                                 createUser(this.getArguments().get(1), new String[]{this.getArguments().get(2), this.getArguments().get(3)});
                             } else {

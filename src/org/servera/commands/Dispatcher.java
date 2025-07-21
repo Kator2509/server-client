@@ -7,12 +7,10 @@ import java.util.LinkedList;
 
 public interface Dispatcher
 {
-    //Регистрация менеджера прав внутри исполнителя команд.
-    boolean registerPermissionManager(PermissionManager permissionManager);
     //Получить команду.
     Command getCommand(String name);
     //Зарегистрировать команду.
     void register(Command command);
     //Исполнить команду.
-    void runCommand(String name, LinkedList<String> args, User user);
+    void runCommand(String name, LinkedList<String> args, User user) throws CommandException;
 }

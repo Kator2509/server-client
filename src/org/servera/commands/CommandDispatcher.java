@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import static org.servera.inheritance.SPermission.PermissionManager.isUserHaveGroup;
+import static org.servera.inheritance.SPermission.PermissionManager.isUserPermission;
+
 public class CommandDispatcher implements Dispatcher
 {
     protected Map<String, Command> commandMap = new HashMap<>();
@@ -16,24 +19,34 @@ public class CommandDispatcher implements Dispatcher
     protected Configuration configuration;
     protected PermissionManager permissionManager;
 
-    public CommandDispatcher(Configuration configuration){
+    public CommandDispatcher(Configuration configuration, PermissionManager permissionManager){
         this.configuration = configuration;
-        System.out.println(prefix + "Loaded.");
+        this.permissionManager = permissionManager;
+        if (this.permissionManager != null)
+        {
+            System.out.println(prefix + "Permission loaded success");
+        }
+        else
+        {
+            System.out.println(prefix + "[ERROR] Permission not loaded. That can cause a problem.");
+        }
+        System.out.println(prefix + "Loaded success.");
     }
 
-    public CommandDispatcher(Map<String, Command> commandMap, Configuration configuration)
+    public CommandDispatcher(Map<String, Command> commandMap, Configuration configuration, PermissionManager permissionManager)
     {
         this.configuration = configuration;
         this.commandMap = commandMap;
-        System.out.println(prefix + "Loaded.");
-    }
-
-    @Override
-    public boolean registerPermissionManager(PermissionManager permissionManager)
-    {
         this.permissionManager = permissionManager;
-        System.out.println(prefix + "Permission load.");
-        return this.permissionManager == null;
+        if (this.permissionManager != null)
+        {
+            System.out.println(prefix + "Permission loaded success");
+        }
+        else
+        {
+            System.out.println(prefix + "[ERROR] Permission not loaded. That can cause a problem.");
+        }
+        System.out.println(prefix + "Loaded success.");
     }
 
     @Override
@@ -52,7 +65,7 @@ public class CommandDispatcher implements Dispatcher
     }
 
     @Override
-    public void runCommand(String name, LinkedList<String> args, User user)
+    public void runCommand(String name, LinkedList<String> args, User user) throws CommandException
     {
         if(commandMap.containsKey(name))
         {
@@ -60,12 +73,12 @@ public class CommandDispatcher implements Dispatcher
             if(!args.isEmpty()) {
                 command.setArguments(args);
             }
-            if(this.permissionManager.isUserPermission(user, command.getPermission().getFirst()) || this.permissionManager.isUserHaveGroup(user, command.getPermission().getFirst())) {
+            if(isUserPermission(user, command.getPermission().getFirst()) || isUserHaveGroup(user, command.getPermission().getFirst())) {
                 if (!executeCommand(command, user))
                 {
-                    System.out.println(prefix + "Can't execute command - " + name + ".");
+                    System.out.println(prefix + "Can't execute command - " + name);
                     try {
-                        System.out.println(prefix + configuration.getDataPath(foundCommand(name)));
+                        System.out.println(prefix + "FAQ - " + name + "\n" + configuration.getDataPath(foundCommand(name)));
                     } catch (ConfigException e) {
                         System.out.println(prefix + "[ERROR] Can't call a config.");
                         System.out.println(prefix + "[ERROR] " + e.getMessage());
