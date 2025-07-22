@@ -75,6 +75,7 @@ public class UserManager
 
         @Override
         public boolean run(User user) {
+            success = false;
             this.connector.openConnection(connection -> {
                 if (!this.getArguments().isEmpty()) {
                     if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("remove")) {
@@ -89,12 +90,21 @@ public class UserManager
                         }
                     } else if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("create")) {
                         if (!(this.getArguments().size() < 2) && isUserPermission(user, "user.create")) {
-                            if (this.getArguments().size() > 2) {
+                            if (this.getArguments().size() == 4) {
                                 createUser(this.getArguments().get(1), new String[]{this.getArguments().get(2), this.getArguments().get(3)});
                             } else {
                                 createUser(this.getArguments().get(1), new String[]{});
                             }
                             success = true;
+                        }
+                    } else if(this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("grant"))
+                    {
+                        if(!(this.getArguments().size() < 2) && isUserPermission(user, "user.grant"))
+                        {
+                            if(this.getArguments().size() == 3) {
+                                grantUser(this.getArguments().get(1), this.getArguments().get(2));
+                                success = true;
+                            }
                         }
                     }
                 }
@@ -117,7 +127,7 @@ public class UserManager
                         Integer tab = generateTab(connection);
                         String var1 = "INSERT INTO us_users (uuid, tab_num, firstname, secondname, dcre, \"group\") VALUES ('" + uuid +
                                 "', 'T-" + tab + "', '" + name + "' " + (arguments.length == 2 ? ", '" + Arrays.stream(arguments).toList().getFirst() + "'" : ", null") +
-                                ", now()" + ((arguments.length > 0) ? ", '" + Arrays.stream(arguments).toList().getLast() + "'" : ", null") + ")"; //ТРЕБУЕТСЯ ПЕРЕПИСЬ
+                                ", now()" + ((arguments.length > 0) ? ", '" + Arrays.stream(arguments).toList().getLast() + "'" : ", null") + ")";
                         Statement var = connection.createStatement();
                         var.execute(var1);
                         userMap.put(name, new User(uuid, String.valueOf(tab), name));
@@ -200,27 +210,34 @@ public class UserManager
             });
         }
 
+        private void grantUser(String name, String permission)
+        {
+            this.connector.openConnection(connection ->
+            {
+
+            });
+        }
+
         private Integer generateTab(Connection connection) throws SQLException
         {
-            boolean search;
-            int var;
+            var var2 = 0;
+            ResultSet rs;
             do {
                 try {
-                    var = (int) (100 + (random.nextDouble() * 2.0) * (Math.pow(10, (int) this.configuration.getDataPath("max-size-tab")) - 100));
+                    var2 = (int) (100 + (random.nextDouble() * 2.0) * (Math.pow(10, (int) this.configuration.getDataPath("max-size-tab")) - 100));
                 } catch (ConfigException e) {
                     System.out.println(prefix + "[ERROR] Can't call a Default config.");
-                    var = (int) (100 + (random.nextDouble() * 2.0) * (Math.pow(10, 7 - 100)));
+                    var2 = (int) (100 + (random.nextDouble() * 2.0) * (Math.pow(10, 7 - 100)));
                 }
                 Statement var1 = connection.createStatement();
 
-                String request = "Select count(*) from us_users where tab_num like '%" + var + "%'";
+                String request = "Select count(*) from us_users where tab_num like '%" + var2 + "%'";
 
                 var1.execute(request);
-                ResultSet rs = var1.getResultSet();
+                rs = var1.getResultSet();
                 rs.next();
-                search = rs.getInt(1) > 0;
-            } while (search);
-            return var;
+            } while (rs.getInt(1) > 0);
+            return var2;
         }
     }
 }

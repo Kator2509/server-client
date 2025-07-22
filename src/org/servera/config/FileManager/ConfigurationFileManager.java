@@ -23,6 +23,7 @@ public class ConfigurationFileManager
             if (!check_system())
             {
                 System.out.println(prefix + "[WARN] System need to override. Calling Listener file.");
+                FileListener.getSystemFiles();
             }
         } catch (URISyntaxException e) {
             System.out.println(prefix + "[ERROR] " + e.getMessage());
@@ -37,25 +38,30 @@ public class ConfigurationFileManager
             {
                 var path = String.valueOf(fileIterator.next());
                 if(path.contains("System/") && !path.equals("System/")) {
-                    this.fileMap.add(new File(path.substring(path.indexOf('/') + 1)));
+                    this.fileMap.add(new File(Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath().substring(0,
+                            Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath().lastIndexOf("/"))
+                            + path.substring(path.indexOf('/'))));
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             System.out.println(prefix + "[ERROR] " + e.getMessage());
         }
     }
 
     private boolean check_system()
     {
+        try {
+            System.out.println(Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
+        } catch (URISyntaxException e) {
+            System.out.println(prefix + "[ERROR] " + e.getMessage());
+        }
         return false;
     }
 
     private static class FileListener
     {
-        private FileListener(){}
-
-        private List<File> getSystemFiles()
+        private static List<File> getSystemFiles()
         {
             return null;
         }

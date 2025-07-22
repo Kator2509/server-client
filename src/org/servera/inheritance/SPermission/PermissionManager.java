@@ -29,14 +29,15 @@ public class PermissionManager
         {
             try {
                 Statement var = connection.createStatement();
-                var.execute("SELECT count(*) FROM perm WHERE permission = '" + path + "'");
+                var.execute("SELECT count(*) FROM perm WHERE LOWER(permission) = LOWER('" + path + "') and enable = true");
                 ResultSet rs = var.getResultSet();
                 rs.next();
                 if(rs.getInt(1) > 0)
                 {
                     int index = path.lastIndexOf('.');
-                    var.execute("SELECT count(*) FROM us_perm WHERE us_tab = '" + user.getTab() + "' AND us_permission in (select index from perm where permission = '" +
-                            path + "' OR permission = '" + (path.contains(".") ? path.substring(0,index) : path) + ".*')");
+                    var.execute("SELECT count(*) FROM us_perm WHERE us_tab = '" + user.getTab() + "' AND us_permission in (select index from perm where " +
+                            "(LOWER(permission) = LOWER('" + path + "') " +
+                            "OR LOWER(permission) = LOWER('" + (path.contains(".") ? path.substring(0,index) : path) + ".*')) and enable = true)");
                     rs = var.getResultSet();
                     rs.next();
                     if(rs.getInt(1) > 0)
@@ -109,18 +110,20 @@ public class PermissionManager
         private boolean success;
 
         public PermissionCMD(String name, Connector connector) {
-            super(name, new ArrayList<>(List.of("permission.create", "permission.remove")));
+            super(name, new ArrayList<>(List.of("permission.create", "permission.remove", "permission.toggle")));
             this.connector = connector;
         }
 
         @Override
         public boolean run(User user) {
             success = false;
-            if(!this.getArguments().isEmpty()) {
+            if(!(this.getArguments().isEmpty())) {
                 if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("remove")) {
                     return removePermission(this.getArguments().get(1).toLowerCase(Locale.ROOT));
                 } else if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("create")) {
                     return createPermission(this.getArguments().get(1).toLowerCase(Locale.ROOT));
+                } else if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("toggle")) {
+                    return togglePermission(this.getArguments().get(1).toLowerCase(Locale.ROOT));
                 }
             }
             return false;
@@ -132,9 +135,11 @@ public class PermissionManager
             {
                 try {
                     connection.createStatement().execute("INSERT INTO perm (\"permission\", dcre) values ('" + name + "', now())");
+                    System.out.println(prefix + "Created new permission - " + name);
                     success = true;
                 } catch (SQLException e) {
                     System.out.println(prefix + "[ERROR] " + e.getMessage());
+                    System.out.println(prefix + "Can't created new permission.");
                 }
             });
             return success;
@@ -145,11 +150,42 @@ public class PermissionManager
             this.connector.openConnection(connection ->
             {
                 try {
-                    connection.createStatement().execute("DELETE FROM perm WHERE \"permission\" = '" + name + "'");
+                    connection.createStatement().execute("DELETE FROM perm WHERE LOWER(\"permission\") = LOWER('" + name + "')");
+                    System.out.println(prefix + "Removed permission - " + name);
+                    success = true;
                 } catch (SQLException e) {
                     System.out.println(prefix + "[ERROR] " + e.getMessage());
+                    System.out.println(prefix + "Can't found permission.");
                 }
-                success = true;
+            });
+            return success;
+        }
+
+        private boolean togglePermission(String name)
+        {
+            this.connector.openConnection(connection ->
+            {
+                try {
+                    Statement var = connection.createStatement();
+                    var.execute("select enable from perm where LOWER(permission) = LOWER('" + name + "')");
+
+                    ResultSet rs = var.getResultSet();
+                    rs.next();
+
+                    if (rs.getBoolean(1))
+                    {
+                        var.execute("update perm set enable = false where LOWER(permission) = LOWER('" + name + "')");
+                        System.out.println(prefix + "Permission " + name + " disable");
+                    } else
+                    {
+                        var.execute("update perm set enable = true where LOWER(permission) = LOWER('" + name + "')");
+                        System.out.println(prefix + "Permission " + name + " enable");
+                    }
+                    success = true;
+                } catch (SQLException e) {
+                    System.out.println(prefix + "[ERROR] " + e.getMessage());
+                    System.out.println(prefix + "Can't found permission.");
+                }
             });
             return success;
         }

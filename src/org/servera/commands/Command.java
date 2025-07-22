@@ -1,7 +1,6 @@
 package org.servera.commands;
 
 import org.servera.inheritance.User;
-import org.servera.inheritance.UserManager;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -34,7 +33,7 @@ public abstract class Command implements CommandInterface {
 
     @Override
     public LinkedList<String> getArguments() {
-        return this.arguments;
+        return this.arguments != null ? this.arguments : new LinkedList<>();
     }
 
     @Override

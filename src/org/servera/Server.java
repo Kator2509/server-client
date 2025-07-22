@@ -86,7 +86,11 @@ public class Server
         public boolean run(User user) {
             Run = false;
             dispatcher = null;
+            permissionManager = null;
             userManager = null;
+            connectorManager = null;
+            configurationFileManager = null;
+            configurationManager = null;
             System.out.println(prefix + "Server stopped.");
             return true;
         }
@@ -99,53 +103,40 @@ public class Server
         }
         @Override
         public boolean run(User user) {
-            if(serverThread.isAlive())
-            {
-                serverThread.start();
-                System.out.println(prefix + "Server was offline. Starting server thread.");
-                if(dispatcherThread.isAlive())
-                {
-                    dispatcherThread.start();
-                    System.out.println(prefix + "Dispatcher was offline. Starting dispatcher thread.");
-                }
-            }
-            else
-            {
-                System.out.println(prefix + "Reboot server modules.");
-                configurationManager = null;
-                connectorManager = null;
-                userManager = null;
-                dispatcher = null;
-                permissionManager = null;
 
-                System.out.println(prefix + "Starting loading modules...");
-                configurationManager = new ConfigurationManager();
-                connectorManager = new ConnectorManager(configurationManager);
+            ServerExecute.reboot();
+            ServerCommandDispatcher.reboot();
 
-                userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
+            configurationManager = new ConfigurationManager();
+            configurationFileManager = new ConfigurationFileManager();
+            connectorManager = new ConnectorManager(configurationManager);
 
-                permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"));
-                dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager);
-                registerModules.registerCommands(dispatcher);
+            userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
 
-                System.out.println(prefix + "Trying to reboot a server thread...");
-                ServerExecute.callReboot = true;
-                ServerExecute.run();
-                ServerExecute.callReboot = false;
-                System.out.println(prefix + "Reboot success.");
-            }
+            permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"));
+            dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager);
+            registerModules.registerCommands(dispatcher);
+
+
             return true;
         }
     }
 
     private static class ServerCommandDispatcher
     {
+        private static boolean callReboot = false;
+
+        private static void reboot()
+        {
+            callReboot = true;
+        }
+
         private static void run()
         {
             LinkedList<String> var0 = new LinkedList<>();
             dispatcherThread = new Thread(() -> {
                 Scanner entry = new Scanner(System.in);
-                while(Run)
+                while(Run && !callReboot)
                 {
                     var0.clear();
                     String command = "";
@@ -169,8 +160,12 @@ public class Server
                         System.out.println(prefix + "[ERROR] " + e.getMessage());
                     }
                 }
+                if (callReboot)
+                {
+                    callReboot = false;
+                    run();
+                }
             });
-
             dispatcherThread.start();
         }
     }
@@ -178,6 +173,11 @@ public class Server
     private static class ServerExecute
     {
         private static boolean callReboot = false;
+
+        private static void reboot()
+        {
+            callReboot = true;
+        }
 
         private static void run()
         {
@@ -214,11 +214,12 @@ public class Server
                         System.exit(1);
                     }
                 }
+                if (callReboot)
+                {
+                    callReboot = false;
+                    run();
+                }
             });
-            if (callReboot)
-            {
-                System.out.println(prefix + "Server thread rebooted.");
-            }
             serverThread.start();
         }
     }
