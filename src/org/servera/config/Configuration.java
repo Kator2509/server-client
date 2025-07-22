@@ -4,6 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import org.servera.Server;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -14,16 +17,22 @@ public class Configuration implements ConfigurationInterface
     private final String path;
     private final Yaml yaml = new Yaml();
     protected final Map<String, Object> data;
+    private static final String prefix = "[ConfigurationManager]: ";
 
     public Configuration(String path)
     {
-        this.path = path;
+        this.path = Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().substring(0,
+                Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + path;
         this.data = readData();
     }
 
-    private Map<String, Object> readData()
-    {
-        InputStream var = Server.class.getResourceAsStream("/" + getPath());
+    private Map<String, Object> readData() {
+        FileInputStream var = null;
+        try {
+            var = new FileInputStream(this.path);
+        } catch (FileNotFoundException e) {
+            System.out.println(prefix + "[ERROR] " + e.getMessage());
+        }
         return yaml.load(var);
     }
 

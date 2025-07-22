@@ -12,6 +12,7 @@ import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
 
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -36,8 +37,8 @@ public class Server
 
     public static void main(String[] args)
     {
-        configurationManager = new ConfigurationManager();
         configurationFileManager = new ConfigurationFileManager();
+        configurationManager = new ConfigurationManager();
         connectorManager = new ConnectorManager(configurationManager);
 
         userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
@@ -46,12 +47,9 @@ public class Server
         dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager);
         registerModules.registerCommands(dispatcher);
 
-
         /*
         * TEST - ZONE
         * */
-        new ServerCryptoProvider();
-
 
 
 
@@ -104,9 +102,6 @@ public class Server
         @Override
         public boolean run(User user) {
 
-            ServerExecute.reboot();
-            ServerCommandDispatcher.reboot();
-
             configurationManager = new ConfigurationManager();
             configurationFileManager = new ConfigurationFileManager();
             connectorManager = new ConnectorManager(configurationManager);
@@ -117,6 +112,8 @@ public class Server
             dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager);
             registerModules.registerCommands(dispatcher);
 
+            ServerExecute.reboot();
+            ServerCommandDispatcher.reboot();
 
             return true;
         }
