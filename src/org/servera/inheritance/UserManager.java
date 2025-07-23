@@ -1,6 +1,8 @@
 package org.servera.inheritance;
 
 import org.servera.DataBasePSQL.Connector;
+import org.servera.LogArguments;
+import org.servera.Logger;
 import org.servera.commands.Command;
 import org.servera.config.ConfigException;
 import org.servera.config.Configuration;
@@ -11,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
+import static org.servera.Logger.writeLog;
 import static org.servera.inheritance.SPermission.PermissionManager.isUserPermission;
 
 public class UserManager
@@ -101,9 +104,8 @@ public class UserManager
                     {
                         if(!(this.getArguments().size() < 2) && isUserPermission(user, "user.grant"))
                         {
-                            if(this.getArguments().size() == 3) {
-                                grantUser(this.getArguments().get(1), this.getArguments().get(2));
-                                success = true;
+                            if(this.getArguments().size() == 4) {
+                                success = grantUser(this.getArguments().get(2), this.getArguments().get(3), this.getArguments().get(1));
                             }
                         }
                     }
@@ -158,7 +160,7 @@ public class UserManager
                     ResultSet rs = var.getResultSet();
                     rs.next();
 
-                    if(!rs.wasNull() && userMap.containsKey(name))
+                    if(rs.getRow() > 0 && userMap.containsKey(name))
                     {
                         userMap.remove(name);
                         userMap.put(rs.getString(3), new User(UUID.fromString(rs.getString(1)),
@@ -210,12 +212,66 @@ public class UserManager
             });
         }
 
-        private void grantUser(String name, String permission)
+        static boolean granted;
+        private boolean grantUser(String name, String permission, String attribute)
         {
             this.connector.openConnection(connection ->
             {
+                granted = false;
+                try {
+                    var var1 = connection.createStatement();
+                    var1.execute("select index from perm where LOWER(permission) = LOWER('" + permission + "')");
 
+                    var rs = var1.getResultSet();
+                    rs.next();
+
+                    if(rs.getRow() > 0 && Objects.equals(attribute, "add"))
+                    {
+                        var var2 = connection.createStatement();
+                        var2.execute("select count(*) from us_perm where us_tab = (select tab_num from us_users where LOWER(firstname) = LOWER('" + name + "')) and us_permission = '" + rs.getInt(1) + "'");
+
+                        var rs1 = var2.getResultSet();
+
+                        rs1.next();
+
+                        if(rs1.getInt(1) > 0)
+                        {
+                            System.out.println(prefix + "User " + name + " already have permission "+ permission);
+                            granted = true;
+                            return;
+                        }
+                    }
+
+                    if (Objects.equals(attribute, "add")) {
+                        if(rs.getRow() > 0)
+                        {
+                            var1.execute("insert into us_perm (us_tab, us_permission, dcre) values ((select tab_num from us_users where LOWER(firstname) = LOWER('" + name + "')), '" + rs.getInt(1) + "', now())");
+                            System.out.println(prefix + "User " + name + " granted permission " + permission);
+                        }
+                        else
+                        {
+                            System.out.println(prefix + "Don't found a permission " + permission);
+                        }
+                        granted = true;
+                    }
+                    else if(Objects.equals(attribute, "remove"))
+                    {
+                        if(rs.getRow() > 0)
+                        {
+                            var1.execute("delete from us_perm where us_tab = (select tab_num from us_users where LOWER(firstname) = LOWER('" + name + "')) and us_permission = '" + rs.getInt(1) + "';");
+                            System.out.println(prefix + "User " + name + " removed permission " + permission);
+                        }
+                        else
+                        {
+                            System.out.println(prefix + "Don't found a permission " + permission);
+                        }
+                        granted = true;
+                    }
+                } catch (SQLException e) {
+                    System.out.println(prefix + "[ERROR] " + e.getMessage());
+                }
             });
+            return granted;
         }
 
         private Integer generateTab(Connection connection) throws SQLException

@@ -1,22 +1,36 @@
 package org.servera;
 
-public class Logger {
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-    public static void sendLog(String name, String message)
+import static org.servera.LogArguments.LOG;
+
+public class Logger
+{
+    protected Class<?> parent;
+
+    public Logger(Class<?> parent)
     {
-        LoggerListener.writeLog(name, message);
+        this.parent = parent;
     }
 
-    private static class LoggerListener
+    public static void writeLog(String arguments, String message, Class<?> parent)
     {
-        private static void writeLog(String name, String message)
-        {
+        if(logIsHave(null)) {
 
         }
+        System.out.println(LocalDateTime.now() + arguments + "[" + parent.getName().substring(parent.getName().lastIndexOf('.') + 1) + "] " + message);
+    }
 
-        private void createLog()
+    private static boolean logIsHave(String name)
+    {
+        if(name == null)
         {
+            writeLog(LOG, "Created a new log file ", Logger.class);
+        }
+        else {
 
         }
+        return false;
     }
 }

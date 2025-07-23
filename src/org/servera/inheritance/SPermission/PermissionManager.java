@@ -68,19 +68,20 @@ public class PermissionManager
                 ResultSet rs = var.getResultSet();
                 rs.next();
                 var temp = rs.getString(1);
+
                 if(rs.getString(1) != null)
                 {
-                    int index = path.lastIndexOf('.');
-                    var.execute("SELECT count(*) FROM perm WHERE permission = '" + path + "'");
+                    var index = path.lastIndexOf('.');
+                    var.execute("SELECT count(*) FROM perm WHERE LOWER(permission) = LOWER('" + path + "')");
                     rs = var.getResultSet();
                     rs.next();
 
                     if(rs.getInt(1) > 0)
                     {
                         var.execute("SELECT count(*) FROM us_gr_permission WHERE sg_group = '"
-                                + temp + "' AND sg_permission in (select index from perm where permission = '"
-                                + path + "' or permission = '"
-                                + path.substring(0,index) + ".*')");
+                                + temp + "' AND sg_permission in (select index from perm where LOWER(permission) = LOWER('"
+                                + path + "') or LOWER(permission) = LOWER('"
+                                + path.substring(0,index) + ".*') and enable = true) and enable = true");
                         rs = var.getResultSet();
                         rs.next();
                         if(rs.getInt(1) > 0)

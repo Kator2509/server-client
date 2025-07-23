@@ -6,21 +6,23 @@ import org.servera.commands.CommandDispatcher;
 import org.servera.commands.CommandException;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.ConfigurationFileManager;
-import org.servera.crypto.ServerCryptoProvider;
 import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
 
 import java.io.DataInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+
+import static org.servera.LogArguments.ERROR_LOG;
 
 public class Server
 {
@@ -51,10 +53,10 @@ public class Server
         * TEST - ZONE
         * */
 
-
+        Logger.writeLog(ERROR_LOG, "TEST", Server.class);
 
         /*
-         * Finally.
+         * TEST - ZONE
          * */
 
         ServerExecute.run();
@@ -101,9 +103,8 @@ public class Server
         }
         @Override
         public boolean run(User user) {
-
-            configurationManager = new ConfigurationManager();
             configurationFileManager = new ConfigurationFileManager();
+            configurationManager = new ConfigurationManager();
             connectorManager = new ConnectorManager(configurationManager);
 
             userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
@@ -136,8 +137,8 @@ public class Server
                 while(Run && !callReboot)
                 {
                     var0.clear();
-                    String command = "";
-                    int i = 0;
+                    var command = "";
+                    var i = 0;
 
                     System.out.print(userManager.getUser("Console").getFirstName() + ":~$ ");
 

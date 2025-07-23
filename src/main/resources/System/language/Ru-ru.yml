@@ -4,7 +4,8 @@ user: "user: \n
           - create <UserName> <SecondName> <Group> Создание пользователя. Заполнение SecondName и Group необязательно.\n
           - update <UserName> Перевыгрузка пользователя в систему.\n
           - remove <UserName> Удаление пользователя. \n
-          - grant <UserName> <Permission> Наделение прав пользователя."
+          - grant <UserName> <add|remove> <Permission> Наделение прав пользователя. \n
+          - group grant <UserName> <GroupName> Наделение пользователя группой."
 permission: "permission: \n
           - create <Permission> Создание прав. \n
           - remove <Permission> Удаление прав. \n

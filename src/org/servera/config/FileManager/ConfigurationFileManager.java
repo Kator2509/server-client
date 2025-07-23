@@ -35,12 +35,13 @@ public class ConfigurationFileManager
             {
                 var path = String.valueOf(fileIterator.next());
                 if(path.contains("System/") && !path.equals("System/")) {
-                    this.fileMap.add(new File(Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath().substring(0,
-                            Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath().lastIndexOf(File.separator))
+                    this.fileMap.add(new File(this.pathToSystem.substring(0, this.pathToSystem.lastIndexOf(File.separator))
                             + path.substring(path.indexOf(File.separator))));
                 }
             }
-        } catch (IOException | URISyntaxException e) {
+            this.fileMap.add(new File(this.pathToSystem.substring(0, this.pathToSystem.lastIndexOf(File.separator)) + "/log"));
+            this.fileMap.add(new File(this.pathToSystem.substring(0, this.pathToSystem.lastIndexOf(File.separator)) + "/plugins"));
+        } catch (IOException e) {
             System.out.println(prefix + "[ERROR] " + e.getMessage());
         }
     }
@@ -56,7 +57,7 @@ public class ConfigurationFileManager
         }
         if (!var1.isEmpty()) {
             System.out.println(prefix + "[WARN] System need to override. Calling Listener file.");
-            FileListener.restoreSystem(var1);
+            FileListener.restoreSystem(var1, this.pathToSystem);
             return false;
         }
         else
@@ -68,7 +69,7 @@ public class ConfigurationFileManager
 
     private static class FileListener
     {
-        private static void restoreSystem(List<File> array) {
+        private static void restoreSystem(List<File> array, String pathToSystem) {
             for (File var : array) {
                 try {
                     if (var.getPath().contains(".yml")) {
@@ -78,8 +79,8 @@ public class ConfigurationFileManager
                         System.out.println(prefix + "File " + var.getName() + " created. Start filling configuration.");
 
                         try {
-                            var var1 = Server.class.getResourceAsStream("/System/" + var.getPath().substring(Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()
-                                    .substring(0, Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath().lastIndexOf(File.separator)).length() + 1));
+                            var var1 = Server.class.getResourceAsStream("/System/" + var.getPath().substring(pathToSystem
+                                    .substring(0, pathToSystem.lastIndexOf(File.separator)).length() + 1));
 
                             var var3 = new FileOutputStream(var.getPath());
                             int len;
@@ -92,7 +93,7 @@ public class ConfigurationFileManager
 
                             var3.close();
                             var1.close();
-                        } catch (IOException | URISyntaxException e) {
+                        } catch (IOException e) {
                             System.out.println(prefix + "[ERROR] " + e.getMessage());
                         }
                         System.out.println(prefix + "Configuration " + var.getName() + " filled.");
