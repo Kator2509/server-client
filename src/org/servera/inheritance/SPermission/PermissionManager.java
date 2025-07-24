@@ -1,6 +1,7 @@
 package org.servera.inheritance.SPermission;
 
 import org.servera.DataBasePSQL.Connector;
+import org.servera.Logger;
 import org.servera.commands.Command;
 import org.servera.inheritance.User;
 
@@ -11,11 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static org.servera.LogArguments.*;
+
 public class PermissionManager
 {
     private static Connector connector;
     private static boolean result = false;
-    private static final String prefix = "[PermissionManager]: ";
+    protected static Logger logger = new Logger(PermissionManager.class);
 
     public PermissionManager(Connector connector)
     {
@@ -47,11 +50,11 @@ public class PermissionManager
                 }
                 else
                 {
-                    System.out.println(prefix + "Permission don't found. Permission already registered?");
+                    logger.writeLog(null, WARN_LOG, "Permission don't found. Permission already registered?");
                     result = false;
                 }
             } catch (SQLException e) {
-                System.out.println(prefix + "[ERROR] Can't send the request to data base.");
+                logger.writeLog(null, ERROR_LOG, "Can't send the request to data base.");
             }
         });
         return result;
@@ -90,7 +93,7 @@ public class PermissionManager
                         }
                     } else
                     {
-                        System.out.println(prefix + "[ERROR] Permission don't found. Permission already registered?");
+                        logger.writeLog(null, ERROR_LOG, "Permission don't found. Permission already registered?");
                         result = false;
                     }
                 }
@@ -98,8 +101,8 @@ public class PermissionManager
                     result = false;
                 }
             } catch (SQLException e) {
-                System.out.println(prefix + "[ERROR] Can't send the request to data base.");
-                System.out.println(prefix + "[ERROR] " + e.getMessage());
+                logger.writeLog(null, ERROR_LOG, "Can't send the request to data base.");
+                logger.writeLog(null, ERROR_LOG, e.getMessage());
             }
         });
         return result;
@@ -136,11 +139,11 @@ public class PermissionManager
             {
                 try {
                     connection.createStatement().execute("INSERT INTO perm (\"permission\", dcre) values ('" + name + "', now())");
-                    System.out.println(prefix + "Created new permission - " + name);
+                    logger.writeLog(null, LOG, "Created new permission - " + name);
                     success = true;
                 } catch (SQLException e) {
-                    System.out.println(prefix + "[ERROR] " + e.getMessage());
-                    System.out.println(prefix + "Can't created new permission.");
+                    logger.writeLog(null, ERROR_LOG, "Can't created new permission.");
+                    logger.writeLog(null, ERROR_LOG, e.getMessage());
                 }
             });
             return success;
@@ -152,11 +155,11 @@ public class PermissionManager
             {
                 try {
                     connection.createStatement().execute("DELETE FROM perm WHERE LOWER(\"permission\") = LOWER('" + name + "')");
-                    System.out.println(prefix + "Removed permission - " + name);
+                    logger.writeLog(null, LOG, "Removed permission - " + name);
                     success = true;
                 } catch (SQLException e) {
-                    System.out.println(prefix + "[ERROR] " + e.getMessage());
-                    System.out.println(prefix + "Can't found permission.");
+                    logger.writeLog(null, ERROR_LOG, "Can't found permission.");
+                    logger.writeLog(null, ERROR_LOG, e.getMessage());
                 }
             });
             return success;
@@ -176,16 +179,16 @@ public class PermissionManager
                     if (rs.getBoolean(1))
                     {
                         var.execute("update perm set enable = false where LOWER(permission) = LOWER('" + name + "')");
-                        System.out.println(prefix + "Permission " + name + " disable");
+                        logger.writeLog(null, LOG, "Permission " + name + " disable");
                     } else
                     {
                         var.execute("update perm set enable = true where LOWER(permission) = LOWER('" + name + "')");
-                        System.out.println(prefix + "Permission " + name + " enable");
+                        logger.writeLog(null, LOG, "Permission " + name + " enable");
                     }
                     success = true;
                 } catch (SQLException e) {
-                    System.out.println(prefix + "[ERROR] " + e.getMessage());
-                    System.out.println(prefix + "Can't found permission.");
+                    logger.writeLog(null, ERROR_LOG, "Can't found permission.");
+                    logger.writeLog(null, ERROR_LOG, e.getMessage());
                 }
             });
             return success;

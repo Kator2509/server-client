@@ -1,5 +1,6 @@
 package org.servera.commands;
 
+import org.servera.Logger;
 import org.servera.config.ConfigException;
 import org.servera.config.Configuration;
 import org.servera.inheritance.SPermission.PermissionManager;
@@ -9,28 +10,29 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import static org.servera.LogArguments.*;
 import static org.servera.inheritance.SPermission.PermissionManager.isUserHaveGroup;
 import static org.servera.inheritance.SPermission.PermissionManager.isUserPermission;
 
 public class CommandDispatcher implements Dispatcher
 {
     protected Map<String, Command> commandMap = new HashMap<>();
-    private static final String prefix = "[ListenerCommandDispatcher]: ";
     protected Configuration configuration;
     protected PermissionManager permissionManager;
+    protected Logger logger = new Logger(this.getClass());
 
     public CommandDispatcher(Configuration configuration, PermissionManager permissionManager){
         this.configuration = configuration;
         this.permissionManager = permissionManager;
         if (this.permissionManager != null)
         {
-            System.out.println(prefix + "Permission loaded success");
+            logger.writeLog(null, LOG, "Permission loaded success");
         }
         else
         {
-            System.out.println(prefix + "[ERROR] Permission not loaded. That can cause a problem.");
+            logger.writeLog(null, WARN_LOG, "Permission not loaded. That can cause a problem.");
         }
-        System.out.println(prefix + "Loaded success.");
+        logger.writeLog(null, LOG, "Loaded success.");
     }
 
     public CommandDispatcher(Map<String, Command> commandMap, Configuration configuration, PermissionManager permissionManager)
@@ -40,13 +42,13 @@ public class CommandDispatcher implements Dispatcher
         this.permissionManager = permissionManager;
         if (this.permissionManager != null)
         {
-            System.out.println(prefix + "Permission loaded success");
+            logger.writeLog(null, LOG, "Permission loaded success");
         }
         else
         {
-            System.out.println(prefix + "[ERROR] Permission not loaded. That can cause a problem.");
+            logger.writeLog(null, WARN_LOG, "Permission not loaded. That can cause a problem.");
         }
-        System.out.println(prefix + "Loaded success.");
+        logger.writeLog(null, LOG, "Loaded success.");
     }
 
     @Override
@@ -60,7 +62,7 @@ public class CommandDispatcher implements Dispatcher
     {
         if(!(this.commandMap.containsKey(command.getName()) || this.commandMap.containsValue(command))) {
             this.commandMap.put(command.getName(), command);
-            System.out.println(prefix + "Register command - " + command.getName());
+            logger.writeLog(null, LOG, "Register command - " + command.getName());
         }
     }
 
@@ -76,27 +78,27 @@ public class CommandDispatcher implements Dispatcher
             if(isUserPermission(user, command.getPermission().getFirst()) || isUserHaveGroup(user, command.getPermission().getFirst())) {
                 if (!executeCommand(command, user))
                 {
-                    System.out.println(prefix + "Can't execute command - " + name);
+                    logger.writeLog(null, WARN_LOG, "Can't execute command - " + name);
                     try {
-                        System.out.println(prefix + "FAQ - " + name + "\n" + configuration.getDataPath(foundCommand(name)));
+                        logger.writeLog(null, LOG, "FAQ - " + name + "\n" + configuration.getDataPath(foundCommand(name)));
                     } catch (ConfigException e) {
-                        System.out.println(prefix + "[ERROR] Can't call a config.");
-                        System.out.println(prefix + "[ERROR] " + e.getMessage());
+                        logger.writeLog(null, ERROR_LOG, "Can't call a config.");
+                        logger.writeLog(null, ERROR_LOG, e.getMessage());
                     }
                 }
             }
             else {
-                System.out.println(prefix + "You don't have permission.");
+                logger.writeLog(null, WARN_LOG, "You don't have permission.");
             }
         } else
         {
-            System.out.println(prefix + "[ERROR] Can't execute command - " + name + ". Don't found the command.");
+            logger.writeLog(null, ERROR_LOG, "Can't execute command - " + name + ". Don't found the command.");
             if(!foundCommand(name).isEmpty()) {
                 try {
-                    System.out.println(prefix + "Maybe you mean \"" + configuration.getDataPath(foundCommand(name)) + "\"");
+                    logger.writeLog(null, LOG, "Maybe you mean \"" + configuration.getDataPath(foundCommand(name)) + "\"");
                 } catch (ConfigException e) {
-                    System.out.println(prefix + "[ERROR] Can't call a message from language config. Exist a message?");
-                    System.out.println(prefix + "[ERROR] " + e.getMessage());
+                    logger.writeLog(null, ERROR_LOG, "Can't call a message from language config. Exist a message?");
+                    logger.writeLog(null, ERROR_LOG, e.getMessage());
                 }
             }
         }
@@ -119,7 +121,7 @@ public class CommandDispatcher implements Dispatcher
 
     private boolean executeCommand(Command command, User user)
     {
-        System.out.println(prefix + "Executed command - " + command.getName());
+        logger.writeLog(null, LOG, "Executed command - " + command.getName());
         return command.run(user);
     }
 }

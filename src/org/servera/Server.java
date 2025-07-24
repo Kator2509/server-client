@@ -15,14 +15,13 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
 import static org.servera.LogArguments.ERROR_LOG;
+import static org.servera.LogArguments.LOG;
 
 public class Server
 {
@@ -35,10 +34,12 @@ public class Server
     protected static ConfigurationFileManager configurationFileManager;
     protected static Thread serverThread;
     protected static Thread dispatcherThread;
-    private static final String prefix = "[ServerThread]: ";
+    protected static Logger logger;
 
     public static void main(String[] args)
     {
+        logger = new Logger(Server.class);
+        logger.writeLog(null, LOG, "Server starting loading...");
         configurationFileManager = new ConfigurationFileManager();
         configurationManager = new ConfigurationManager();
         connectorManager = new ConnectorManager(configurationManager);
@@ -52,8 +53,6 @@ public class Server
         /*
         * TEST - ZONE
         * */
-
-        Logger.writeLog(ERROR_LOG, "TEST", Server.class);
 
         /*
          * TEST - ZONE
@@ -72,7 +71,7 @@ public class Server
             dispatcher.register(new UserManager.UserCommand("user", connectorManager.getConnect("UserDataBase"),
                     configurationManager.getConfiguration("DefaultParameters")));
             dispatcher.register(new PermissionManager.PermissionCMD("permission", connectorManager.getConnect("UserDataBase")));
-            System.out.println(prefix + "Registered system commands.");
+            logger.writeLog(null, LOG,"Registered system commands.");
         }
     }
 
@@ -91,7 +90,7 @@ public class Server
             connectorManager = null;
             configurationFileManager = null;
             configurationManager = null;
-            System.out.println(prefix + "Server stopped.");
+            logger.writeLog(null, LOG, "Server stopped.");
             return true;
         }
     }
@@ -154,8 +153,8 @@ public class Server
                     try {
                         dispatcher.runCommand(command, var0, userManager.getUser("Console"));
                     } catch (CommandException e) {
-                        System.out.println(prefix + "[ERROR] Command running with errors.");
-                        System.out.println(prefix + "[ERROR] " + e.getMessage());
+                        logger.writeLog(null, ERROR_LOG,"Command running with errors.");
+                        logger.writeLog(null, ERROR_LOG, e.getMessage());
                     }
                 }
                 if (callReboot)
@@ -200,15 +199,15 @@ public class Server
                     }
                 } catch (SocketTimeoutException ignore) {}
                 catch (IOException e) {
-                    System.out.println(prefix + "[ERROR] Server stopped as crash. Trying to reboot server.");
-                    System.out.println(prefix + "[ERROR] If you see that cause one more. Please report as that.");
-                    System.out.println(prefix + "[ERROR] And call emergency stop the server.");
-                    System.out.println(prefix + "[ERROR] " + e.getMessage());
+                    logger.writeLog(null, ERROR_LOG, "Server stopped as crash. Trying to reboot server.");
+                    logger.writeLog(null, ERROR_LOG, "If you see that cause one more. Please report as that.");
+                    logger.writeLog(null, ERROR_LOG, "And call emergency stop the server.");
+                    logger.writeLog(null, ERROR_LOG, e.getMessage());
                     try {
                         dispatcher.runCommand("reboot", null, userManager.getUser("Console"));
                     } catch (CommandException ex) {
-                        System.out.println(prefix + "[ERROR] Can't reboot server at error. Stopping thread.");
-                        System.out.println(prefix + "[ERROR] " + ex.getMessage());
+                        logger.writeLog(null, ERROR_LOG, "Can't reboot server at error. Stopping thread.");
+                        logger.writeLog(null, ERROR_LOG, ex.getMessage());
                         System.exit(1);
                     }
                 }

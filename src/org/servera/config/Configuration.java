@@ -1,6 +1,7 @@
 package org.servera.config;
 
 import org.jetbrains.annotations.NotNull;
+import org.servera.Logger;
 import org.servera.Server;
 import org.yaml.snakeyaml.Yaml;
 
@@ -11,12 +12,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.servera.LogArguments.ERROR_LOG;
+
 public class Configuration implements ConfigurationInterface
 {
     private final String path;
     private final Yaml yaml = new Yaml();
     protected final Map<String, Object> data;
-    private static final String prefix = "[ConfigurationManager]: ";
+    protected Logger logger = new Logger(this.getClass());
 
     public Configuration(String path)
     {
@@ -30,7 +33,7 @@ public class Configuration implements ConfigurationInterface
         try {
             var = new FileInputStream(this.path);
         } catch (FileNotFoundException e) {
-            System.out.println(prefix + "[ERROR] " + e.getMessage());
+            logger.writeLog(null, ERROR_LOG, e.getMessage());
         }
         return yaml.load(var);
     }

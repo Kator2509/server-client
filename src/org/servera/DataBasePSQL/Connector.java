@@ -1,8 +1,13 @@
 package org.servera.DataBasePSQL;
 
+import org.servera.Logger;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+
+import static org.servera.LogArguments.ERROR_LOG;
+import static org.servera.LogArguments.WARN_LOG;
 
 public class Connector
 {
@@ -10,7 +15,7 @@ public class Connector
     private final String password;
     private final String url;
     protected Connection connection;
-    private static final String prefix = "[DataBaseManager]: ";
+    protected Logger logger = new Logger(this.getClass());
 
     public Connector(String login, String password, String url)
     {
@@ -25,7 +30,7 @@ public class Connector
         try {
             return DriverManager.getConnection(this.url, this.login, this.password);
         } catch (SQLException e) {
-            System.out.println(prefix + "Can't create a connection. That can cause a problem.");
+            logger.writeLog(null, ERROR_LOG, "Can't create a connection. That can cause a problem.");
             return null;
         }
     }
@@ -34,7 +39,7 @@ public class Connector
     {
         this.connection = getConnection();
         if(!testConnect()){
-            System.out.println(prefix + "Connection is not open. That can cause a problem - " + this.url);
+            logger.writeLog(null, WARN_LOG, "Connection is not open. That can cause a problem - " + this.url);
         }
         executeConnector.execute(this.connection);
         closeConnection();
@@ -56,7 +61,8 @@ public class Connector
         try {
             this.connection.close();
         } catch (SQLException e) {
-            System.out.println(prefix + "Can't close connection.");
+            logger.writeLog(null, ERROR_LOG, "Can't close connection.");
+            logger.writeLog(null, ERROR_LOG, e.getMessage());
         }
     }
 }

@@ -1,17 +1,23 @@
 package org.servera.config;
 
+import org.servera.Logger;
+
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.servera.LogArguments.ERROR_LOG;
+import static org.servera.LogArguments.LOG;
 
 public class ConfigurationManager
 {
     protected Map<String, Configuration> configurationMap = new HashMap<>();
     private static final String prefix = "[ConfigurationManager]: ";
+    protected Logger logger = new Logger(this.getClass());
 
     public ConfigurationManager()
     {
         loadConfigs();
-        System.out.println(prefix + "Loaded.");
+        logger.writeLog(null, LOG, "Loaded success.");
     }
 
     public ConfigurationManager(Map<String, Configuration> configurationMap)
@@ -24,7 +30,7 @@ public class ConfigurationManager
         if(!this.configurationMap.containsValue(configuration))
         {
             this.configurationMap.put(name, configuration);
-            System.out.println(prefix + "Register configuration " + configuration.getPath());
+            logger.writeLog(null, LOG, "Register configuration " + configuration.getPath());
         }
     }
 
@@ -36,8 +42,8 @@ public class ConfigurationManager
             this.register("language",
                     new Configuration("language/" + this.getConfiguration("DefaultParameters").getDataPath("language") + ".yml"));
         } catch (ConfigException e) {
-            System.out.println(prefix + "[ERROR] Can't loaded a language config.");
-            System.out.println(e.getMessage());
+            logger.writeLog(null, ERROR_LOG, "Can't loaded a language config.");
+            logger.writeLog(null, ERROR_LOG, e.getMessage());
         }
     }
 

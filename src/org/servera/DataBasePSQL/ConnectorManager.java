@@ -1,5 +1,6 @@
 package org.servera.DataBasePSQL;
 
+import org.servera.Logger;
 import org.servera.config.ConfigException;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.JSONParser;
@@ -7,10 +8,13 @@ import org.servera.config.FileManager.JSONParser;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.servera.LogArguments.ERROR_LOG;
+import static org.servera.LogArguments.LOG;
+
 public class ConnectorManager
 {
     protected Map<String, Connector> connectorMap = new HashMap<>();
-    private static final String prefix = "[DataBaseManager]: ";
+    protected Logger logger = new Logger(this.getClass());
     protected ConfigurationManager configurationManager;
 
     public ConnectorManager(ConfigurationManager configurationManager){
@@ -30,7 +34,7 @@ public class ConnectorManager
         if(!connectorMap.containsValue(connector))
         {
             connectorMap.put(name, connector);
-            System.out.println(prefix + "Created new connection - " + name);
+            logger.writeLog(null, LOG, "Created new connection - " + name);
         }
     }
 
@@ -45,10 +49,10 @@ public class ConnectorManager
                         JSONParser.getData(this.configurationManager.getConfiguration("DataBase").getDataPath("DataBase." + var).toString(), "url").toString()
                 ));
             }
-            System.out.println(prefix + "Loaded success.");
+            logger.writeLog(null, LOG, "Loaded success.");
         } catch (ConfigException e) {
-            System.out.println(prefix + "[ERROR] Loaded with errors.");
-            System.out.println(e.getMessage());
+            logger.writeLog(null, ERROR_LOG, "Loaded with errors.");
+            logger.writeLog(null, ERROR_LOG, e.getMessage());
         }
     }
 
@@ -58,7 +62,7 @@ public class ConnectorManager
         {
             return this.connectorMap.get(name);
         }
-        System.out.println(prefix + "[ERROR] DataBase don't found - " + name + ". That can be cause a problem.");
+        logger.writeLog(null, ERROR_LOG, "DataBase don't found - " + name + ". That can be cause a problem.");
         return null;
     }
 }
