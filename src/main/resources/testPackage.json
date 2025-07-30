@@ -1,0 +1,4 @@
+{
+  "action": "command",
+  "send": {"1": "user", "2":  "add", "3":  "test"}
+}

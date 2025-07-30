@@ -42,7 +42,6 @@ public class ConfigurationFileManager
                             + path.substring(path.indexOf(File.separator))));
                 }
             }
-            this.fileMap.add(new File(this.pathToSystem.substring(0, this.pathToSystem.lastIndexOf(File.separator)) + "/plugins"));
         } catch (IOException e) {
             logger.writeLog(null, ERROR_LOG, e.getMessage());
         }
@@ -58,8 +57,8 @@ public class ConfigurationFileManager
             }
         }
         if (!var1.isEmpty()) {
-            FileListener.restoreSystem(var1, this.pathToSystem, logger);
             logger.writeLog(null, WARN_LOG, "System need to override. File listener was called.");
+            FileListener.restoreSystem(var1, this.pathToSystem, logger);
             return false;
         }
         else

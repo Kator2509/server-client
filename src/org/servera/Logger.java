@@ -4,9 +4,10 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
 
-public class Logger
+public class Logger implements LoggerInterface
 {
     protected Class<?> parent;
     protected String pathToSystem;
@@ -29,6 +30,7 @@ public class Logger
         logIsHave(name);
     }
 
+    @Override
     public void writeLog(String name, String argument, String message)
     {
         System.out.println(LocalDateTime.now() + argument + " [" + this.parent.getName().substring(this.parent.getName().lastIndexOf('.') + 1) + "]: " + message);
@@ -50,10 +52,42 @@ public class Logger
 
                 var1.close();
                 var3.close();
-            } catch (IOException e) {
+            } catch (IOException ignore){}
+        }
+    }
 
+    @Override
+    public void writeLog(String name, Map<LogArguments, String> mapLog)
+    {
+        for(Map.Entry<LogArguments, String> log:mapLog.entrySet())
+        {
+            System.out.println(String.valueOf(LocalDateTime.now()) + log.getKey() + " [" + this.parent.getName().substring(this.parent.getName().lastIndexOf('.') + 1) + "]: " + log.getValue());
+            var temp = String.valueOf(LocalDateTime.now()) + log.getKey() + " [" + this.parent.getName().substring(this.parent.getName().lastIndexOf('.') + 1) + "]: " + log.getValue() + "\n";
+            var logName = LocalDate.now() + "_log.log";
+
+            if (name == null)
+            {
+                try {
+                    var var3 = new ByteArrayInputStream(temp.getBytes(StandardCharsets.UTF_8));
+                    var var1 = new FileOutputStream(this.pathToSystem + logName, true);
+                    int len;
+                    byte[] var2 = temp.getBytes();
+
+                    while((len = var3.read(var2)) > 0)
+                    {
+                        var1.write(var2, 0, len);
+                    }
+
+                    var1.close();
+                    var3.close();
+                } catch (IOException ignore){}
             }
         }
+    }
+
+    protected void clearOldLog()
+    {
+        //LocalDate.now().minusDays(10)
     }
 
     private void logIsHave(String name)

@@ -2,3 +2,4 @@ elua: false #Lisence
 first-load: true #First load system. If you want to reset all to default change there on false.
 max-size-tab: 7 #Max size tab num 16 or change parm database to set a more size -> us_users -> tab_num -> varchar(16).
 language: "Ru-ru" #Using language.
+clear-log: false #Clearing logs file if now - 10 days.
