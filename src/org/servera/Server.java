@@ -51,12 +51,24 @@ public class Server
         * TEST - ZONE
         * */
 
-        JSONParser.getAllData("""
-                {
-                  "title": "package",
+        JSONParser jsonParser = new JSONParser();
+        jsonParser.getAllData("""
+                {"title": "package",
                   "action": "command",
-                  "send": {"1": "user", "2":  "add", "3":  "test"}
-                }
+                  "send": {"1": "user",
+                    "2": "add",
+                    "3": {"test": "48",
+                      "test2": "59"},
+                    "4": {"test": "12",
+                      "test2": "13"}},
+                  "tab-user": "T-CONSOLE",
+                  "TEST": ["TEST1",
+                    "TEST2",
+                    {"test": 1},
+                    {"test1": 20, "test2": 40},
+                    2,
+                    4.0,
+                    ["TEST_ARRAY", "TEST_ARRAY2"]]}
                 """);
 
         /*
