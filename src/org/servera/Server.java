@@ -11,7 +11,9 @@ import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
 
+import javax.swing.*;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
@@ -51,25 +53,7 @@ public class Server
         * TEST - ZONE
         * */
 
-        JSONParser jsonParser = new JSONParser();
-        jsonParser.getAllData("""
-                {"title": "package",
-                  "action": "command",
-                  "send": {"1": "user",
-                    "2": "add",
-                    "3": {"test": "48",
-                      "test2": "59"},
-                    "4": {"test": "12",
-                      "test2": "13"}},
-                  "tab-user": "T-CONSOLE",
-                  "TEST": ["TEST1",
-                    "TEST2",
-                    {"test": 1},
-                    {"test1": 20, "test2": 40},
-                    2,
-                    4.0,
-                    ["TEST_ARRAY", "TEST_ARRAY2"]]}
-                """);
+
 
         /*
          * TEST - ZONE
@@ -131,14 +115,12 @@ public class Server
             LinkedList<String> var0 = new LinkedList<>();
             dispatcherThread = new Thread(() -> {
                 Scanner entry = new Scanner(System.in);
-                while(isRun() && !callReboot)
-                {
+                while(isRun() && !callReboot) {
                     var0.clear();
                     var command = "";
                     var i = 0;
 
                     System.out.print(userManager.getUser("Console").getFirstName() + ":~$ ");
-
                     for (String arguments : entry.nextLine().split(" ")) {
                         if (i == 0) {
                             command = arguments;
@@ -151,7 +133,7 @@ public class Server
                     try {
                         dispatcher.runCommand(command, var0, userManager.getUser("Console"));
                     } catch (CommandException e) {
-                        logger.writeLog(null, ERROR_LOG,"Command running with errors.");
+                        logger.writeLog(null, ERROR_LOG, "Command running with errors.");
                         logger.writeLog(null, ERROR_LOG, e.getMessage());
                     }
                 }
