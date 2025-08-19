@@ -1,5 +1,0 @@
-  #If you use new connection, add your database here. System using postgresql.
-  #Example: {"login": "DataBaseLogin", "password": "DataBaseUserPassword", "url": "UrlToYourDataBase"}
-
-DataBase:
-  UserDataBase: {"login": "postgres", "password": "postgres", "url": "jdbc:postgresql://localhost:5432/postgres"}

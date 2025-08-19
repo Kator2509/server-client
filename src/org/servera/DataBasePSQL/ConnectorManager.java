@@ -41,14 +41,10 @@ public class ConnectorManager
     private void loadConfig()
     {
         try {
-            for (String var : this.configurationManager.getConfiguration("DataBase").getKeyDataList("DataBase"))
-            {
-                this.register(var, new Connector(
-                        JSONParser.getData(this.configurationManager.getConfiguration("DataBase").getDataPath("DataBase." + var).toString(), "login").toString(),
-                        JSONParser.getData(this.configurationManager.getConfiguration("DataBase").getDataPath("DataBase." + var).toString(), "password").toString(),
-                        JSONParser.getData(this.configurationManager.getConfiguration("DataBase").getDataPath("DataBase." + var).toString(), "url").toString()
-                ));
-            }
+            this.register("UserDataBase", new Connector(
+                    this.configurationManager.getConfiguration("DataBase").getDataPath("UserDataBase.login").toString(),
+                    this.configurationManager.getConfiguration("DataBase").getDataPath("UserDataBase.password").toString(),
+                    this.configurationManager.getConfiguration("DataBase").getDataPath("UserDataBase.url").toString()));
             logger.writeLog(null, LOG, "Loaded success.");
         } catch (ConfigException e) {
             logger.writeLog(null, ERROR_LOG, "Loaded with errors.");

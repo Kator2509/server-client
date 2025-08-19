@@ -3,29 +3,49 @@ package org.servera.config;
 import org.jetbrains.annotations.NotNull;
 import org.servera.Logger;
 import org.servera.Server;
+import org.servera.config.FileManager.JSONParser;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 import static org.servera.LogArguments.ERROR_LOG;
 
 public class Configuration implements ConfigurationInterface
 {
-    private final String path;
+    private final String path, type;
     private final Yaml yaml = new Yaml();
-    protected final Map<String, Object> data;
+    protected Map<String, Object> data;
     protected Logger logger = new Logger(this.getClass());
 
-    public Configuration(String path)
+    public Configuration(String path, String type)
     {
         this.path = Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().substring(0,
                 Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + path;
-        this.data = readData();
+        this.type = type;
+        if (Objects.equals(type.toLowerCase(Locale.ROOT), "yaml")) {
+            this.data = readData();
+        } else if (Objects.equals(type.toLowerCase(Locale.ROOT), "json"))
+        {
+            this.data = readJSON();
+        }
+    }
+
+    private Map<String, Object> readJSON()
+    {
+        StringBuilder dataBuilder = new StringBuilder();
+        try {
+            FileReader fr = new FileReader(Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().substring(0,
+                    Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "/DataBaseConfig/DBConfig.json");
+            int c;
+            while ((c=fr.read()) != -1)
+            {
+                dataBuilder.append((char) c);
+            }
+        } catch (IOException e) {
+            logger.writeLog(null, ERROR_LOG, e.getMessage());
+        }
+        return new JSONParser(dataBuilder.toString()).getJSONData();
     }
 
     private Map<String, Object> readData() {
@@ -57,6 +77,10 @@ public class Configuration implements ConfigurationInterface
     @Override
     public Object getDataPath(String container) throws ConfigException
     {
+        if (Objects.equals(getType(), "json"))
+        {
+            return this.data.get(container);
+        }
         Object var = this.data.get(container.split("\\.")[0]), var1 = null;
         int i = 1;
         if(container.split("\\.").length > 1)
@@ -80,5 +104,9 @@ public class Configuration implements ConfigurationInterface
     public boolean setDataPath(@NotNull String container, @NotNull Object newData) throws ConfigException {
 
         return false;
+    }
+
+    public String getType() {
+        return type;
     }
 }

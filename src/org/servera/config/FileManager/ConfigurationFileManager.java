@@ -73,7 +73,7 @@ public class ConfigurationFileManager
         private static void restoreSystem(List<File> array, String pathToSystem, Logger logger) {
             for (File var : array) {
                 try {
-                    if (var.getPath().contains(".yml")) {
+                    if (var.getPath().contains(".")) {
                         if (!var.createNewFile()) {
                             logger.writeLog(null, LOG, "Can't create a file - " + var.getPath());
                         }

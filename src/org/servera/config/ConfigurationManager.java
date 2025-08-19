@@ -25,6 +25,7 @@ public class ConfigurationManager
         this.configurationMap = configurationMap;
     }
 
+
     public void register(String name, Configuration configuration)
     {
         if(!this.configurationMap.containsValue(configuration))
@@ -37,10 +38,10 @@ public class ConfigurationManager
     private void loadConfigs()
     {
         try {
-            this.register("DataBase", new Configuration("DataBaseConfig/DBConfig.yml"));
-            this.register("DefaultParameters", new Configuration("Default.yml"));
+            this.register("DataBase", new Configuration("DataBaseConfig/DBConfig.json", "json"));
+            this.register("DefaultParameters", new Configuration("Default.yml", "yaml"));
             this.register("language",
-                    new Configuration("language/" + this.getConfiguration("DefaultParameters").getDataPath("language") + ".yml"));
+                    new Configuration("language/" + this.getConfiguration("DefaultParameters").getDataPath("language") + ".yml", "yaml"));
         } catch (ConfigException e) {
             logger.writeLog(null, ERROR_LOG, "Can't loaded a language config.");
             logger.writeLog(null, ERROR_LOG, e.getMessage());
