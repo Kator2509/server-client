@@ -3,7 +3,6 @@ package org.servera.DataBasePSQL;
 import org.servera.Logger;
 import org.servera.config.ConfigException;
 import org.servera.config.ConfigurationManager;
-import org.servera.config.FileManager.JSONParser;
 
 import java.util.HashMap;
 import java.util.Map;

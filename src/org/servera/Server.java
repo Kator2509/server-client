@@ -4,16 +4,14 @@ import org.servera.DataBasePSQL.ConnectorManager;
 import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
 import org.servera.commands.CommandException;
+import org.servera.config.ConfigException;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.ConfigurationFileManager;
-import org.servera.config.FileManager.JSONParser;
 import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
 
-import javax.swing.*;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;

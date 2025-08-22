@@ -38,8 +38,9 @@ public class ConfigurationManager
     private void loadConfigs()
     {
         try {
+            this.register("eula", new Configuration("eula.yml", "yaml"));
             this.register("DataBase", new Configuration("DataBaseConfig/DBConfig.json", "json"));
-            this.register("DefaultParameters", new Configuration("Default.yml", "yaml"));
+            this.register("DefaultParameters", new Configuration("config.yml", "yaml"));
             this.register("language",
                     new Configuration("language/" + this.getConfiguration("DefaultParameters").getDataPath("language") + ".yml", "yaml"));
         } catch (ConfigException e) {

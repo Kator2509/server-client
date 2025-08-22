@@ -170,7 +170,10 @@ public class JSONParser
             var var4 = new ArrayList<ArrayList<Byte>>();
             var json = 0;
             var array = 0;
-
+            if (bytes[0] != 123 || bytes[bytes.length - 1] != 125)
+            {
+                logger.writeLog(null, ERROR_LOG, "Uncorrected format -> " + (char) (bytes[0] != 123 ? bytes[0] : bytes[bytes.length - 1]) + " ?");
+            }
 
             for(byte var1:bytes) {
                 if (var1 == 123)
@@ -202,7 +205,13 @@ public class JSONParser
                         var2.removeLast();
                     }
                     if(!var2.isEmpty()) {
-                        var4.add(new ArrayList<Byte>(var2));
+                        if (!var4.contains(new ArrayList<>(var2))) {
+                            var4.add(new ArrayList<Byte>(var2));
+                        }
+                        else
+                        {
+                            logger.writeLog(null, ERROR_LOG, "Uncorrected format. Found duplicate container.");
+                        }
                     }
                     var2.clear();
                 }

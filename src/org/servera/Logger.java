@@ -7,26 +7,36 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.servera.LogArguments.ERROR_LOG;
+
 public class Logger implements LoggerInterface
 {
     protected Class<?> parent;
-    protected String pathToSystem;
+    protected static String pathToSystem;
 
     public Logger(Class<?> parent)
     {
         this.parent = parent;
-        this.pathToSystem = parent.getProtectionDomain().getCodeSource().getLocation().getPath()
+        pathToSystem = parent.getProtectionDomain().getCodeSource().getLocation().getPath()
                 .substring(0, parent.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "log" + File.separator;
-        new File(this.pathToSystem).mkdir();
+        new File(pathToSystem).mkdir();
         logIsHave(null);
     }
 
     public Logger(Class<?> parent, String name)
     {
         this.parent = parent;
-        this.pathToSystem = parent.getProtectionDomain().getCodeSource().getLocation().getPath()
+        pathToSystem = parent.getProtectionDomain().getCodeSource().getLocation().getPath()
                 .substring(0, parent.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "log" + File.separator;
-        new File(this.pathToSystem).mkdir();
+        new File(pathToSystem).mkdir();
+        logIsHave(name);
+    }
+
+    public Logger(String customPath, Class<?> parent, String name)
+    {
+        this.parent = parent;
+        pathToSystem = customPath + File.separator + "log" + File.separator;
+        new File(pathToSystem).mkdir();
         logIsHave(name);
     }
 
@@ -41,7 +51,7 @@ public class Logger implements LoggerInterface
         {
             try {
                 var var3 = new ByteArrayInputStream(temp.getBytes(StandardCharsets.UTF_8));
-                var var1 = new FileOutputStream(this.pathToSystem + logName, true);
+                var var1 = new FileOutputStream(pathToSystem + logName, true);
                 int len;
                 byte[] var2 = temp.getBytes();
 
@@ -69,7 +79,7 @@ public class Logger implements LoggerInterface
             {
                 try {
                     var var3 = new ByteArrayInputStream(temp.getBytes(StandardCharsets.UTF_8));
-                    var var1 = new FileOutputStream(this.pathToSystem + logName, true);
+                    var var1 = new FileOutputStream(pathToSystem + logName, true);
                     int len;
                     byte[] var2 = temp.getBytes();
 
@@ -85,33 +95,28 @@ public class Logger implements LoggerInterface
         }
     }
 
-    protected void clearOldLog()
-    {
-        //LocalDate.now().minusDays(10)
-    }
-
     private void logIsHave(String name)
     {
         try {
             if(Objects.equals(name, null))
             {
                 var logName = LocalDate.now() + "_log.log";
-                if (!new File(this.pathToSystem + logName).exists()) {
-                    if (new File(this.pathToSystem + logName).createNewFile()) {
-                        writeLog(null, LogArguments.LOG, "Create log file " + this.pathToSystem + logName);
+                if (!new File(pathToSystem + logName).exists()) {
+                    if (new File(pathToSystem + logName).createNewFile()) {
+                        writeLog(null, LogArguments.LOG, "Create log file " + pathToSystem + logName);
                     }
                 }
             }
             else {
                 var customLogName = LocalDate.now() + name + ".log";
-                if (!new File(this.pathToSystem + customLogName).exists()) {
-                    if (new File(this.pathToSystem + customLogName).createNewFile()) {
-                        writeLog(name, LogArguments.LOG, "Created log file " + this.pathToSystem + customLogName);
+                if (!new File(pathToSystem + customLogName).exists()) {
+                    if (new File(pathToSystem + customLogName).createNewFile()) {
+                        writeLog(name, LogArguments.LOG, "Created log file " + pathToSystem + customLogName);
                     }
                 }
             }
         } catch (IOException e) {
-            writeLog(null, LogArguments.ERROR_LOG, "Can't create a log file.");
+            writeLog(null, ERROR_LOG, "Can't create a log file.");
         }
     }
 }
