@@ -24,6 +24,7 @@ public class CommandDispatcher implements Dispatcher
     protected UserManager userManager;
     protected ConfigurationManager configurationManager;
     protected ConnectorManager connectorManager;
+    protected ServerDispatcher dispatcher;
     protected Logger logger = new Logger(this.getClass());
 
     public CommandDispatcher(Configuration configuration, PermissionManager permissionManager, UserManager userManager, ConnectorManager connectorManager, ConfigurationManager configurationManager){
@@ -41,7 +42,7 @@ public class CommandDispatcher implements Dispatcher
             logger.writeLog(null, WARN_LOG, "Permission not loaded. That can cause a problem.");
         }
         registerDefault();
-        new ServerDispatcher(this, userManager);
+        this.dispatcher = new ServerDispatcher(this, userManager);
         logger.writeLog(null, LOG, "Loaded success.");
     }
 
@@ -145,24 +146,35 @@ public class CommandDispatcher implements Dispatcher
         return command.run(user);
     }
 
+    public void close()
+    {
+        this.dispatcher.callStop();
+        this.commandMap = null;
+        this.configuration = null;
+        this.permissionManager = null;
+        this.userManager = null;
+        this.configurationManager = null;
+        this.connectorManager = null;
+    }
+
     private static class ServerDispatcher
     {
         protected Thread dispatcher_core;
+        private boolean run = true;
         protected Logger logger = new Logger(ServerDispatcher.class);
+
+        public void callStop()
+        {
+            run = false;
+        }
 
         public ServerDispatcher(Dispatcher dispatcher, UserManager userManager)
         {
             dispatcher_core = new Thread(new Runnable() {
-                private boolean run = true;
 
                 public boolean isRun()
                 {
                     return run;
-                }
-
-                public void callStop()
-                {
-                    run = false;
                 }
 
                 @Override

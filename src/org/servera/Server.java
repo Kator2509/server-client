@@ -29,7 +29,6 @@ public class Server
     protected static ConfigurationFileManager configurationFileManager;
     protected static AuthListener authListener;
     protected static Thread serverThread;
-    protected static Thread dispatcherThread;
     protected static Logger logger = new Logger(Server.class);
 
     public static void main(String[] args)
@@ -67,9 +66,9 @@ public class Server
         @Override
         public boolean run(User user) {
 
+            dispatcher.close();
             //Требуется перепись всех ядер и создание уникальных завершений, чтобы каждый поток ожидал завершения того или иного процесса. Дабы избежать крашей и ошибок системы.
             //Так же создать синхронную загрузку, чтобы один модуль дожидался загрузки другого и избежать критических ошибок и проблем.
-
 
 
             configurationFileManager = new ConfigurationFileManager();
@@ -95,7 +94,7 @@ public class Server
         @Override
         public boolean run(User user) {
             Run = false;
-            dispatcher = null;
+            dispatcher.close();
             permissionManager = null;
             userManager = null;
             connectorManager = null;
