@@ -4,32 +4,30 @@ import org.servera.DataBasePSQL.ConnectorManager;
 import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
 import org.servera.commands.CommandException;
-import org.servera.config.ConfigException;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.ConfigurationFileManager;
 import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
+import org.servera.inheritance.auth.AuthListener;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 import static org.servera.LogArguments.*;
 
 public class Server
 {
-    private static boolean Run = false;
+    protected static boolean Run = false;
     protected static CommandDispatcher dispatcher;
     protected static UserManager userManager;
     protected static ConfigurationManager configurationManager;
     protected static ConnectorManager connectorManager;
     protected static PermissionManager permissionManager;
     protected static ConfigurationFileManager configurationFileManager;
+    protected static AuthListener authListener;
     protected static Thread serverThread;
     protected static Thread dispatcherThread;
     protected static Logger logger = new Logger(Server.class);
@@ -44,44 +42,36 @@ public class Server
         userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
 
         permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"));
-        dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager);
-        registerModules.registerCommands(dispatcher);
+        authListener = new AuthListener(configurationManager);
+        dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager, userManager, connectorManager, configurationManager);
 
         /*
         * TEST - ZONE
         * */
 
-
+        
 
         /*
          * TEST - ZONE
          * */
 
         Run = true;
-        ShutDown.ServerExecute.run();
-        ServerCommandDispatcher.run();
+        ServerExecute.run();
     }
 
-    private static class registerModules
-    {
-        private static void registerCommands(CommandDispatcher dispatcher)
-        {
-            dispatcher.register(new ShutDown("shutdown", new ArrayList<>(List.of("System.shutdown"))));
-            dispatcher.register(new callReboot("reboot", new ArrayList<>(List.of("System.reboot"))));
-            dispatcher.register(new UserManager.UserCommand("user", connectorManager.getConnect("UserDataBase"),
-                    configurationManager.getConfiguration("DefaultParameters")));
-            dispatcher.register(new PermissionManager.PermissionCMD("permission", connectorManager.getConnect("UserDataBase")));
-            logger.writeLog(null, LOG,"Registered system commands.");
-        }
-    }
-
-    private static class callReboot extends Command
+    public static class callReboot extends Command
     {
         public callReboot(String name, List<String> permission) {
             super(name, permission);
         }
         @Override
         public boolean run(User user) {
+
+            //Требуется перепись всех ядер и создание уникальных завершений, чтобы каждый поток ожидал завершения того или иного процесса. Дабы избежать крашей и ошибок системы.
+            //Так же создать синхронную загрузку, чтобы один модуль дожидался загрузки другого и избежать критических ошибок и проблем.
+
+
+
             configurationFileManager = new ConfigurationFileManager();
             configurationManager = new ConfigurationManager();
             connectorManager = new ConnectorManager(configurationManager);
@@ -89,67 +79,14 @@ public class Server
             userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
 
             permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"));
-            dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager);
-            registerModules.registerCommands(dispatcher);
-
-            ShutDown.ServerExecute.reboot();
-            ServerCommandDispatcher.reboot();
-
+            authListener = new AuthListener(configurationManager);
+            dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager, userManager, connectorManager, configurationManager);
+            ServerExecute.reboot();
             return true;
         }
     }
 
-    private static class ServerCommandDispatcher
-    {
-        private static boolean callReboot = false;
-
-        private static void reboot()
-        {
-            callReboot = true;
-        }
-
-        private static void run()
-        {
-            LinkedList<String> var0 = new LinkedList<>();
-            dispatcherThread = new Thread(() -> {
-                Scanner entry = new Scanner(System.in);
-                while(isRun() && !callReboot) {
-                    var0.clear();
-                    var command = "";
-                    var i = 0;
-
-                    System.out.print(userManager.getUser("Console").getFirstName() + ":~$ ");
-                    for (String arguments : entry.nextLine().split(" ")) {
-                        if (i == 0) {
-                            command = arguments;
-                            i++;
-                        } else {
-                            var0.add(arguments);
-                        }
-                    }
-
-                    try {
-                        dispatcher.runCommand(command, var0, userManager.getUser("Console"));
-                    } catch (CommandException e) {
-                        logger.writeLog(null, ERROR_LOG, "Command running with errors.");
-                        logger.writeLog(null, ERROR_LOG, e.getMessage());
-                    }
-                }
-                if (!isRun())
-                {
-                    logger.writeLog(null, LOG, "Dispatcher closed.");
-                }
-                if (callReboot)
-                {
-                    callReboot = false;
-                    run();
-                }
-            });
-            dispatcherThread.start();
-        }
-    }
-
-    private static class ShutDown extends Command
+    public static class ShutDown extends Command
     {
         public ShutDown(String name, List<String> permission) {
             super(name, permission);
@@ -166,6 +103,57 @@ public class Server
             configurationManager = null;
             return true;
         }
+    }
+
+//    private static class ServerCommandDispatcher
+//    {
+//        private static boolean callReboot = false;
+//
+//        private static void reboot()
+//        {
+//            callReboot = true;
+//        }
+//
+//        private static void run()
+//        {
+//            LinkedList<String> var0 = new LinkedList<>();
+//            dispatcherThread = new Thread(() -> {
+//                Scanner entry = new Scanner(System.in);
+//                while(isRun() && !callReboot) {
+//                    var0.clear();
+//                    var command = "";
+//                    var i = 0;
+//
+//                    System.out.print(userManager.getUser("Console").getFirstName() + ":~$ ");
+//                    for (String arguments : entry.nextLine().split(" ")) {
+//                        if (i == 0) {
+//                            command = arguments;
+//                            i++;
+//                        } else {
+//                            var0.add(arguments);
+//                        }
+//                    }
+//
+//                    try {
+//                        dispatcher.runCommand(command, var0, userManager.getUser("Console"));
+//                    } catch (CommandException e) {
+//                        logger.writeLog(null, ERROR_LOG, "Command running with errors.");
+//                        logger.writeLog(null, ERROR_LOG, e.getMessage());
+//                    }
+//                }
+//                if (!isRun())
+//                {
+//                    logger.writeLog(null, LOG, "Dispatcher closed.");
+//                }
+//                if (callReboot)
+//                {
+//                    callReboot = false;
+//                    run();
+//                }
+//            });
+//            dispatcherThread.start();
+//        }
+//    }
 
         private static class ServerExecute
         {
@@ -217,7 +205,6 @@ public class Server
                 });
                 serverThread.start();
             }
-        }
     }
 
     public static boolean isRun()

@@ -1,14 +1,16 @@
 package org.servera.commands;
 
+import org.servera.DataBasePSQL.ConnectorManager;
 import org.servera.Logger;
+import org.servera.Server;
 import org.servera.config.ConfigException;
 import org.servera.config.Configuration;
+import org.servera.config.ConfigurationManager;
 import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.User;
+import org.servera.inheritance.UserManager;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 import static org.servera.LogArguments.*;
 import static org.servera.inheritance.SPermission.PermissionManager.isUserHaveGroup;
@@ -19,11 +21,17 @@ public class CommandDispatcher implements Dispatcher
     protected Map<String, Command> commandMap = new HashMap<>();
     protected Configuration configuration;
     protected PermissionManager permissionManager;
+    protected UserManager userManager;
+    protected ConfigurationManager configurationManager;
+    protected ConnectorManager connectorManager;
     protected Logger logger = new Logger(this.getClass());
 
-    public CommandDispatcher(Configuration configuration, PermissionManager permissionManager){
+    public CommandDispatcher(Configuration configuration, PermissionManager permissionManager, UserManager userManager, ConnectorManager connectorManager, ConfigurationManager configurationManager){
         this.configuration = configuration;
         this.permissionManager = permissionManager;
+        this.userManager = userManager;
+        this.connectorManager = connectorManager;
+        this.configurationManager = configurationManager;
         if (this.permissionManager != null)
         {
             logger.writeLog(null, LOG, "Permission loaded success");
@@ -32,6 +40,8 @@ public class CommandDispatcher implements Dispatcher
         {
             logger.writeLog(null, WARN_LOG, "Permission not loaded. That can cause a problem.");
         }
+        registerDefault();
+        new ServerDispatcher(this, userManager);
         logger.writeLog(null, LOG, "Loaded success.");
     }
 
@@ -49,6 +59,16 @@ public class CommandDispatcher implements Dispatcher
             logger.writeLog(null, WARN_LOG, "Permission not loaded. That can cause a problem.");
         }
         logger.writeLog(null, LOG, "Loaded success.");
+    }
+
+    private void registerDefault()
+    {
+        this.register(new Server.ShutDown("shutdown", new ArrayList<>(List.of("System.shutdown"))));
+        this.register(new Server.callReboot("reboot", new ArrayList<>(List.of("System.reboot"))));
+        this.register(new UserManager.UserCommand("user", connectorManager.getConnect("UserDataBase"),
+                configurationManager.getConfiguration("DefaultParameters")));
+        this.register(new PermissionManager.PermissionCMD("permission", connectorManager.getConnect("UserDataBase")));
+        logger.writeLog(null, LOG,"Registered system commands.");
     }
 
     @Override
@@ -123,5 +143,57 @@ public class CommandDispatcher implements Dispatcher
     {
         logger.writeLog(null, LOG, "Executed command - " + command.getName());
         return command.run(user);
+    }
+
+    private static class ServerDispatcher
+    {
+        protected Thread dispatcher_core;
+        protected Logger logger = new Logger(ServerDispatcher.class);
+
+        public ServerDispatcher(Dispatcher dispatcher, UserManager userManager)
+        {
+            dispatcher_core = new Thread(new Runnable() {
+                private boolean run = true;
+
+                public boolean isRun()
+                {
+                    return run;
+                }
+
+                public void callStop()
+                {
+                    run = false;
+                }
+
+                @Override
+                public void run() {
+                    LinkedList<String> var0 = new LinkedList<>();
+                    Scanner entry = new Scanner(System.in);
+                    while(isRun()) {
+                        var0.clear();
+                        var command = "";
+                        var i = 0;
+
+                        System.out.print(userManager.getUser("Console").getFirstName() + ":~$ ");
+                        for (String arguments : entry.nextLine().split(" ")) {
+                            if (i == 0) {
+                                command = arguments;
+                                i++;
+                            } else {
+                                var0.add(arguments);
+                            }
+                        }
+
+                        try {
+                            dispatcher.runCommand(command, var0, userManager.getUser("Console"));
+                        } catch (CommandException e) {
+                            logger.writeLog(null, ERROR_LOG, "Command running with errors.");
+                            logger.writeLog(null, ERROR_LOG, e.getMessage());
+                        }
+                    }
+                }
+            });
+            dispatcher_core.start();
+        }
     }
 }

@@ -23,23 +23,6 @@ public class JSONParser
         return this.dataMap;
     }
 
-    public static Object getData(String data, String container)
-    {
-        data = data.replace("{", "").replace("}", "");
-        String[] var = data.split(",");
-        for(String var1 : var) {
-            Iterator<String> iterator = Arrays.stream(var1.split("=")).iterator();
-            if (iterator.hasNext())
-            {
-                if (Objects.equals(iterator.next().replace(" ", ""), container))
-                {
-                    return iterator.next();
-                }
-            }
-        }
-        return null;
-    }
-
     private static class Parser
     {
         protected static Map<String, Object> map = new HashMap<>();
@@ -103,7 +86,7 @@ public class JSONParser
                         }
                         else
                         {
-                            throw new RepeatExecption("Key already exist -> " + keyBuilder);
+                        logger.writeLog(null, ERROR_LOG, new RepeatExecption("Key already exist -> " + keyBuilder).getMessage());
                         }
                     }
                 }

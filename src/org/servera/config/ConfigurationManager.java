@@ -11,7 +11,6 @@ import static org.servera.LogArguments.LOG;
 public class ConfigurationManager
 {
     protected Map<String, Configuration> configurationMap = new HashMap<>();
-    private static final String prefix = "[ConfigurationManager]: ";
     protected Logger logger = new Logger(this.getClass());
 
     public ConfigurationManager()
