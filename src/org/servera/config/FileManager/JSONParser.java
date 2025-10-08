@@ -5,16 +5,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.servera.LogArguments.ERROR_LOG;
+import static org.servera.LogArguments.WARN_LOG;
 
 public class JSONParser
 {
     protected Map<String, Object> dataMap;
 
-    public JSONParser(String data){
+    public JSONParser(String data) throws UncorrectedFormatException {
         this.dataMap = Parser.parse(data, null);
     }
 
-    public JSONParser(String data, String key){
+    public JSONParser(String data, String key) throws UncorrectedFormatException {
         this.dataMap = Parser.parse(data, key);
     }
 
@@ -28,75 +29,83 @@ public class JSONParser
         protected static Map<String, Object> map = new HashMap<>();
         protected static Logger logger = new Logger(Parser.class);
 
-        protected static Map<String, Object> parse(String data, String keys) throws RepeatExecption
-        {
-            try {
-                for(ArrayList<Byte> var:formatted(data.replace("\n", "").getBytes(StandardCharsets.UTF_8)))
+        protected static Map<String, Object> parse(String data, String keys) throws UncorrectedFormatException {
+            for(ArrayList<Byte> var:formatted(data.getBytes(StandardCharsets.UTF_8)))
+            {
+                var key = true;
+                var space = true;
+                var var3 = false;
+                var keyBuilder = new StringBuilder();
+                var valueBuilder = new StringBuilder();
+                for(byte var1:var)
                 {
-                    var key = true;
-                    var space = true;
-                    var var3 = false;
-                    var keyBuilder = new StringBuilder();
-                    var valueBuilder = new StringBuilder();
-                    for(byte var1:var)
+                    if (var1 != 32 && space)
                     {
-                        if (var1 != 32 && space)
-                        {
-                            space = false;
-                        }
-                        if(var1 == 58 && key)
-                        {
-                            key = false;
-                            space = true;
-                        }
-                        if (key && !space) {
-                            keyBuilder.append((char) var1);
-                        }
-                        if (!key && !space)
-                        {
-                            valueBuilder.append((char) var1);
-                        }
+                        space = false;
                     }
-
-                    if (keyBuilder.charAt(0) == 34 && keyBuilder.charAt(keyBuilder.length() - 1) == 34) {
-                        keyBuilder.deleteCharAt(keyBuilder.indexOf("\"")).deleteCharAt(keyBuilder.lastIndexOf("\""));
-                    }
-                    if (keys != null)
+                    if(var1 == 58 && key)
                     {
-                        keyBuilder.insert(0, keys + ".");
+                        key = false;
+                        space = true;
                     }
-                    if (valueBuilder.toString().startsWith("{"))
+                    if (key && !space) {
+                        keyBuilder.append((char) var1);
+                    }
+                    if (!key && !space)
                     {
-                        var3 = true;
-                        parse(valueBuilder.toString(), keyBuilder.toString());
-                    }
-                    else if (valueBuilder.toString().startsWith("\""))
-                    {
-                        valueBuilder.deleteCharAt(valueBuilder.indexOf("\"")).deleteCharAt(valueBuilder.lastIndexOf("\""));
-                    }
-                    if(!var3) {
-                        if(!map.containsKey(keyBuilder.toString())) {
-                            if (valueBuilder.toString().startsWith("["))
-                            {
-                                map.put(keyBuilder.toString(), parseArray(valueBuilder.toString()));
-                            }
-                            else {
-                                map.put(keyBuilder.toString(), valueBuilder);
-                            }
-                        }
-                        else
-                        {
-                        logger.writeLog(null, ERROR_LOG, new RepeatExecption("Key already exist -> " + keyBuilder).getMessage());
-                        }
+                        valueBuilder.append((char) var1);
                     }
                 }
-            } catch (UncorrectedFormatException e) {
-                logger.writeLog(null, ERROR_LOG, e.getMessage());
+
+                if (keyBuilder.charAt(0) == 34 && keyBuilder.charAt(keyBuilder.length() - 1) == 34) {
+                    keyBuilder.deleteCharAt(keyBuilder.indexOf("\"")).deleteCharAt(keyBuilder.lastIndexOf("\""));
+                }
+                if (keys != null)
+                {
+                    keyBuilder.insert(0, keys + ".");
+                }
+                if (valueBuilder.toString().startsWith("{"))
+                {
+                    var3 = true;
+                    parse(valueBuilder.toString(), keyBuilder.toString());
+                }
+                else if (valueBuilder.toString().startsWith("\""))
+                {
+                    try {
+                        valueBuilder.delete(valueBuilder.lastIndexOf("\""), valueBuilder.length());
+                        valueBuilder.deleteCharAt(valueBuilder.indexOf("\""));
+                    }
+                    catch (StringIndexOutOfBoundsException ex)
+                    {
+                        logger.writeLog(null, ERROR_LOG, "Uncorrected format json -> " + keyBuilder + " key extended value " + valueBuilder + " ?");
+                        throw new UncorrectedFormatException("Uncorrected format json -> " + keyBuilder + " key extended value " + valueBuilder + " ?");
+                    }
+                }
+                else if(valueBuilder.indexOf(" ") > -1)
+                {
+                    valueBuilder.delete(valueBuilder.indexOf(" "), valueBuilder.length());
+                }
+                if(!var3) {
+                    if(!map.containsKey(keyBuilder.toString())) {
+                        if (valueBuilder.toString().startsWith("["))
+                        {
+                            map.put(keyBuilder.toString(), parseArray(valueBuilder.toString()));
+                        }
+                        else {
+                            map.put(keyBuilder.toString(), valueBuilder);
+                        }
+                    }
+                    else
+                    {
+                        logger.writeLog(null, WARN_LOG, "Key already exist -> " + keyBuilder);
+                        throw new RepeatException("Key already exist -> " + keyBuilder);
+                    }
+                }
             }
             return map;
         }
 
-        protected static List<?> parseArray(String array) throws UncorrectedFormatException
+        protected static List<?> parseArray(String array)
         {
             var var1 = 0;
             var json = 0;
@@ -147,15 +156,45 @@ public class JSONParser
             return list;
         }
 
-        protected static List<ArrayList<Byte>> formatted(byte[] bytes) throws UncorrectedFormatException
-        {
+        protected static List<ArrayList<Byte>> formatted(byte[] bytes) throws UncorrectedFormatException {
             var var2 = new ArrayList<Byte>();
             var var4 = new ArrayList<ArrayList<Byte>>();
             var json = 0;
             var array = 0;
-            if (bytes[0] != 123 || bytes[bytes.length - 1] != 125)
+            if (bytes[0] != 123 || bytes[bytes.length - 1] != 125) {
+                logger.writeLog(null, ERROR_LOG, "Uncorrected format json ended on -> " + (char) (bytes[0] != 123 ? bytes[0] : bytes[bytes.length - 1]) + " ?");
+                throw new UncorrectedFormatException("Uncorrected format json ended on -> " + (char) (bytes[0] != 123 ? bytes[0] : bytes[bytes.length - 1]) + " ?");
+            }
+            var var6 = false;
+            var skip = false;
+            var var3 = new StringBuilder();
+            for (byte var1 : bytes)
             {
-                logger.writeLog(null, ERROR_LOG, "Uncorrected format -> " + (char) (bytes[0] != 123 ? bytes[0] : bytes[bytes.length - 1]) + " ?");
+                if(var1 == 34 && !skip)
+                {
+                    skip = true;
+                }
+                else if(var1 == 34 && skip)
+                {
+                    skip = false;
+                }
+
+                var3.append((char) var1);
+                if (!skip) {
+                    if (var1 == 58 && var6) {
+                        logger.writeLog(null, ERROR_LOG, "Uncorrected format json, separation containers -> " + var3 + " ?");
+                    }
+
+                    if (var1 == 58) {
+                        var6 = true;
+                    }
+                    if (var1 == 44 && var6) {
+                        var6 = false;
+                        var3 = new StringBuilder();
+                    } else if (var1 == 44 || var1 == 125 && !var6) {
+                        logger.writeLog(null, ERROR_LOG, "Uncorrected format json, there container -> " + var3 + " ?");
+                    }
+                }
             }
 
             for(byte var1:bytes) {
@@ -183,9 +222,9 @@ public class JSONParser
                 }
                 if((var1 == 44 && json == 1 && array == 0) || json == 0)
                 {
-                    if(!var2.isEmpty() && var2.getLast() == 44)
+                    if(!var2.isEmpty() && var2.get(var2.size() - 1) == 44)
                     {
-                        var2.removeLast();
+                        var2.remove(var2.size() - 1);
                     }
                     if(!var2.isEmpty()) {
                         if (!var4.contains(new ArrayList<>(var2))) {
@@ -193,7 +232,8 @@ public class JSONParser
                         }
                         else
                         {
-                            logger.writeLog(null, ERROR_LOG, "Uncorrected format. Found duplicate container.");
+                            logger.writeLog(null, WARN_LOG, "Uncorrected format. Found duplicate container -> " + Arrays.toString(var2.toArray()));
+                            throw new RepeatException("Uncorrected format. Found duplicate container -> " + Arrays.toString(var2.toArray()));
                         }
                     }
                     var2.clear();

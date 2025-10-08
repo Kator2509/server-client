@@ -42,7 +42,7 @@ public class CommandDispatcher implements Dispatcher
             logger.writeLog(null, WARN_LOG, "Permission not loaded. That can cause a problem.");
         }
         registerDefault();
-        this.dispatcher = new ServerDispatcher(this, userManager);
+        this.dispatcher = new ServerDispatcher(this, this.userManager);
         logger.writeLog(null, LOG, "Loaded success.");
     }
 
@@ -160,11 +160,12 @@ public class CommandDispatcher implements Dispatcher
     private static class ServerDispatcher
     {
         protected Thread dispatcher_core;
-        private boolean run = true;
+        protected boolean run = true;
         protected Logger logger = new Logger(ServerDispatcher.class);
 
         public void callStop()
         {
+            logger.writeLog(null, LOG, "Dispatcher call stop...");
             run = false;
         }
 

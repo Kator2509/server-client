@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.servera.Logger;
 import org.servera.Server;
 import org.servera.config.FileManager.JSONParser;
+import org.servera.config.FileManager.UncorrectedFormatException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -44,10 +45,12 @@ public class Configuration implements ConfigurationInterface
             {
                 dataBuilder.append((char) c);
             }
-        } catch (IOException e) {
+
+            return new JSONParser(dataBuilder.toString()).getJSONData();
+        } catch (IOException | UncorrectedFormatException e) {
             logger.writeLog(null, ERROR_LOG, e.getMessage());
         }
-        return new JSONParser(dataBuilder.toString()).getJSONData();
+        return null;
     }
 
     protected Map<String, Object> readYAML() {

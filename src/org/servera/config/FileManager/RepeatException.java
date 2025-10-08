@@ -1,12 +1,12 @@
 package org.servera.config.FileManager;
 
-public class RepeatExecption extends RuntimeException
+public class RepeatException extends RuntimeException
 {
-    public RepeatExecption(String message) {
+    public RepeatException(String message) {
         super(message);
     }
 
-    public RepeatExecption()
+    public RepeatException()
     {
         super("Detected repeat keys.");
     }
