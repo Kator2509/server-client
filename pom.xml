@@ -22,8 +22,23 @@
     </repositories>
 
     <build>
+        <finalName>ServerA</finalName>
         <sourceDirectory>src</sourceDirectory>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.servera.Server</mainClass>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                    </archive>
+                    <outputDirectory>/IntellIjIDEA/Projects/ServerA-actual/server-client/Jar</outputDirectory>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -69,25 +84,22 @@
                 </configuration>
             </plugin>
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <outputDirectory>/IntellIjIDEA/Projects/ServerA/Jar</outputDirectory>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifest>
-                            <mainClass>org.servera.Server</mainClass>
-
-                        </manifest>
-                    </archive>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
+                        <id>copy-dependencies</id>
                         <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>/IntellIjIDEA/Projects/ServerA-actual/server-client/Jar</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>false</overWriteSnapshots>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

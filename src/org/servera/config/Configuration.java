@@ -26,9 +26,9 @@ public class Configuration implements ConfigurationInterface
         this.path = Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().substring(0,
                 Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + path;
         this.type = type;
-        if (Objects.equals(type.toLowerCase(Locale.ROOT), "yaml")) {
+        if (Objects.equals(this.type.toLowerCase(Locale.ROOT), "yaml")) {
             this.data = readYAML();
-        } else if (Objects.equals(type.toLowerCase(Locale.ROOT), "json"))
+        } else if (Objects.equals(this.type.toLowerCase(Locale.ROOT), "json"))
         {
             this.data = readJSON();
         }
@@ -39,14 +39,13 @@ public class Configuration implements ConfigurationInterface
         StringBuilder dataBuilder = new StringBuilder();
         try {
             FileReader fr = new FileReader(Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().substring(0,
-                    Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "/DataBaseConfig/DBConfig.json");
+                    Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "DataBaseConfig/DBConfig.json");
             int c;
             while ((c=fr.read()) != -1)
             {
                 dataBuilder.append((char) c);
             }
-
-            return new JSONParser(dataBuilder.toString()).getJSONData();
+            return new JSONParser(dataBuilder.toString()).getData();
         } catch (IOException | UncorrectedFormatException e) {
             logger.writeLog(null, ERROR_LOG, e.getMessage());
         }

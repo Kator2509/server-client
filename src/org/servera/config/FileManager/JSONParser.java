@@ -19,9 +19,19 @@ public class JSONParser
         this.dataMap = Parser.parse(data, key);
     }
 
-    public Map<String, Object> getJSONData()
+    public Object getContainer(String name)
+    {
+        return this.dataMap.get(name);
+    }
+
+    public Map<String, Object> getData()
     {
         return this.dataMap;
+    }
+
+    public List<?> getListContainer(String name)
+    {
+        return Parser.parseArray(this.dataMap.get(name).toString());
     }
 
     private static class Parser
@@ -56,10 +66,6 @@ public class JSONParser
                         valueBuilder.append((char) var1);
                     }
                 }
-
-                if (keyBuilder.charAt(0) == 34 && keyBuilder.charAt(keyBuilder.length() - 1) == 34) {
-                    keyBuilder.deleteCharAt(keyBuilder.indexOf("\"")).deleteCharAt(keyBuilder.lastIndexOf("\""));
-                }
                 if (keys != null)
                 {
                     keyBuilder.insert(0, keys + ".");
@@ -69,30 +75,14 @@ public class JSONParser
                     var3 = true;
                     parse(valueBuilder.toString(), keyBuilder.toString());
                 }
-                else if (valueBuilder.toString().startsWith("\""))
-                {
-                    try {
-                        valueBuilder.delete(valueBuilder.lastIndexOf("\""), valueBuilder.length());
-                        valueBuilder.deleteCharAt(valueBuilder.indexOf("\""));
-                    }
-                    catch (StringIndexOutOfBoundsException ex)
-                    {
-                        logger.writeLog(null, ERROR_LOG, "Uncorrected format json -> " + keyBuilder + " key extended value " + valueBuilder + " ?");
-                        throw new UncorrectedFormatException("Uncorrected format json -> " + keyBuilder + " key extended value " + valueBuilder + " ?");
-                    }
-                }
-                else if(valueBuilder.indexOf(" ") > -1)
-                {
-                    valueBuilder.delete(valueBuilder.indexOf(" "), valueBuilder.length());
-                }
                 if(!var3) {
                     if(!map.containsKey(keyBuilder.toString())) {
                         if (valueBuilder.toString().startsWith("["))
                         {
-                            map.put(keyBuilder.toString(), parseArray(valueBuilder.toString()));
+                            map.put(parseSegment(keyBuilder, 0), parseArray(valueBuilder.toString()));
                         }
                         else {
-                            map.put(keyBuilder.toString(), valueBuilder);
+                            map.put(parseSegment(keyBuilder, 0), parseSegment(valueBuilder, 1));
                         }
                     }
                     else
@@ -103,6 +93,46 @@ public class JSONParser
                 }
             }
             return map;
+        }
+
+
+        /*
+        * 1 - value
+        * 0 - key
+        * */
+        protected static String parseSegment(StringBuilder segment, int type) {
+            var var2 = true;
+            var builder = new StringBuilder();
+            for (byte var1: segment.toString().getBytes(StandardCharsets.UTF_8))
+            {
+                if (type == 0)
+                {
+                    if(var1 != 34 && var1 != 46 && var2)
+                    {
+                        continue;
+                    }
+                    else if(var1 == 34 && var2)
+                    {
+                        var2 = false;
+                        continue;
+                    }
+                    else if(var1 == 34 && !var2)
+                    {
+                        var2 = true;
+                        continue;
+                    }
+                    builder.append((char) var1);
+                }
+                else if (type == 1)
+                {
+                    builder.append((char) var1);
+                }
+            }
+            if(type == 1 && builder.toString().charAt(0) == 34 && builder.toString().charAt(builder.length() - 1) == 34)
+            {
+                builder.deleteCharAt(0).deleteCharAt(builder.length() - 1);
+            }
+            return builder.toString();
         }
 
         protected static List<?> parseArray(String array)
@@ -126,6 +156,9 @@ public class JSONParser
                 else if(var2 == 93)
                 {
                     var1--;
+                    if (var1 == 0) {
+                        continue;
+                    }
                 }
                 if (var2 == 123)
                 {
@@ -161,10 +194,6 @@ public class JSONParser
             var var4 = new ArrayList<ArrayList<Byte>>();
             var json = 0;
             var array = 0;
-            if (bytes[0] != 123 || bytes[bytes.length - 1] != 125) {
-                logger.writeLog(null, ERROR_LOG, "Uncorrected format json ended on -> " + (char) (bytes[0] != 123 ? bytes[0] : bytes[bytes.length - 1]) + " ?");
-                throw new UncorrectedFormatException("Uncorrected format json ended on -> " + (char) (bytes[0] != 123 ? bytes[0] : bytes[bytes.length - 1]) + " ?");
-            }
             var var6 = false;
             var skip = false;
             var var3 = new StringBuilder();
@@ -179,9 +208,12 @@ public class JSONParser
                     skip = false;
                 }
 
-                var3.append((char) var1);
+
+                if (!skip && var1 != 32) {
+                    var3.append((char) var1);
+                }
                 if (!skip) {
-                    if (var1 == 58 && var6) {
+                    if (var1 == 58 && var6 && !var3.toString().contains("{")) {
                         logger.writeLog(null, ERROR_LOG, "Uncorrected format json, separation containers -> " + var3 + " ?");
                     }
 

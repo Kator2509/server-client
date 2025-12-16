@@ -34,7 +34,7 @@ public class Package
         public Container(String JSON)
         {
             try {
-                this.containerData = new JSONParser(JSON).getJSONData();
+                this.containerData = new JSONParser(JSON).getData();
             } catch (UncorrectedFormatException e) {
                 logger.writeLog(null, ERROR_LOG, e.getMessage());
             }
