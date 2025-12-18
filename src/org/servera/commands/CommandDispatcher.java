@@ -35,7 +35,7 @@ public class CommandDispatcher implements Dispatcher
         this.configurationManager = configurationManager;
         if (this.permissionManager != null)
         {
-            logger.writeLog(null, LOG, "Permission loaded success");
+            logger.writeLog(null, LOG, "Permission loaded success.");
         }
         else
         {
@@ -53,7 +53,7 @@ public class CommandDispatcher implements Dispatcher
         this.permissionManager = permissionManager;
         if (this.permissionManager != null)
         {
-            logger.writeLog(null, LOG, "Permission loaded success");
+            logger.writeLog(null, LOG, "Permission loaded success.");
         }
         else
         {

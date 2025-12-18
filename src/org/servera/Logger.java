@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 
@@ -117,6 +118,35 @@ public class Logger implements LoggerInterface
             }
         } catch (IOException e) {
             writeLog(null, ERROR_LOG, "Can't create a log file.");
+        }
+    }
+
+    public void logIsOverload(String name, String path, int count)
+    {
+        var var1 = new File(path == null ? parent.getProtectionDomain().getCodeSource().getLocation().getPath()
+                .substring(0, parent.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "log" + File.separator : path);
+        var var2 = var1.listFiles();
+        var var3 = new ArrayList<>();
+        if(var2 != null) {
+            for (File file : var2) {
+                for (int i = 0; i <= count; i++) {
+                    if (file.getName().contains(String.valueOf(LocalDate.now().minusDays(i))) && !var3.contains(file)) {
+                        var3.add(file);
+                    }
+                }
+            }
+
+            for(File file : var2)
+            {
+                if(!var3.contains(file))
+                {
+                    var nameLog = file.getName();
+                    if (file.delete())
+                    {
+                        writeLog(null, LogArguments.LOG, "Deleted old log file -> " + nameLog);
+                    }
+                }
+            }
         }
     }
 }

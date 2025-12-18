@@ -39,9 +39,9 @@ public class ConfigurationManager
         try {
             this.register("eula", new Configuration("eula.yml", "yaml"));
             this.register("DataBase", new Configuration("DataBaseConfig/DBConfig.json", "json"));
-            this.register("DefaultParameters", new Configuration("config.yml", "yaml"));
+            this.register("config", new Configuration("config.yml", "yaml"));
             this.register("language",
-                    new Configuration("language/" + this.getConfiguration("DefaultParameters").getDataPath("language") + ".yml", "yaml"));
+                    new Configuration("language/" + this.getConfiguration("config").getDataPath("language") + ".yml", "yaml"));
         } catch (ConfigException e) {
             logger.writeLog(null, ERROR_LOG, "Can't loaded a language config.");
             logger.writeLog(null, ERROR_LOG, e.getMessage());

@@ -68,7 +68,7 @@ public class AuthListener
             {
                 try{
                     this.store = KeyStore.getInstance("JCEKS");
-                    if(Objects.equals(configurationManager.getConfiguration("DefaultParameters").getDataPath("certificate-password"), "")) {
+                    if(Objects.equals(configurationManager.getConfiguration("config").getDataPath("certificate-password"), "")) {
                         this.generator = KeyGenerator.getInstance("AES");
                         this.generator.init(256);
                         this.key = this.generator.generateKey();

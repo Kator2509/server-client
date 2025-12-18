@@ -15,7 +15,7 @@ public class JSONParser
         this.dataMap = Parser.parse(data, null);
     }
 
-    public JSONParser(String data, String key) throws UncorrectedFormatException {
+    public JSONParser(String data, String key) {
         this.dataMap = Parser.parse(data, key);
     }
 
@@ -39,7 +39,7 @@ public class JSONParser
         protected static Map<String, Object> map = new HashMap<>();
         protected static Logger logger = new Logger(Parser.class);
 
-        protected static Map<String, Object> parse(String data, String keys) throws UncorrectedFormatException {
+        protected static Map<String, Object> parse(String data, String keys) {
             for(ArrayList<Byte> var:formatted(data.getBytes(StandardCharsets.UTF_8)))
             {
                 var key = true;
@@ -189,7 +189,7 @@ public class JSONParser
             return list;
         }
 
-        protected static List<ArrayList<Byte>> formatted(byte[] bytes) throws UncorrectedFormatException {
+        protected static List<ArrayList<Byte>> formatted(byte[] bytes) {
             var var2 = new ArrayList<Byte>();
             var var4 = new ArrayList<ArrayList<Byte>>();
             var json = 0;

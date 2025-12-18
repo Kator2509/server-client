@@ -59,6 +59,10 @@ public class UserManager
 
     public User getUser(String name)
     {
+        if (userMap.containsKey(name))
+        {
+            
+        }
         return userMap.get(name);
     }
 

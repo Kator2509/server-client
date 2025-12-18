@@ -56,7 +56,7 @@ public class Connector
         }
     }
 
-    public void closeConnection()
+    private void closeConnection()
     {
         try {
             this.connection.close();

@@ -4,10 +4,9 @@ import org.servera.DataBasePSQL.ConnectorManager;
 import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
 import org.servera.commands.CommandException;
+import org.servera.config.ConfigException;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.ConfigurationFileManager;
-import org.servera.config.FileManager.JSONParser;
-import org.servera.config.FileManager.UncorrectedFormatException;
 import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
@@ -38,6 +37,12 @@ public class Server
         logger.writeLog(null, LOG, "Server starting loading...");
         configurationFileManager = new ConfigurationFileManager();
         configurationManager = new ConfigurationManager();
+        try {
+            logger.logIsOverload(null, null, (Integer) configurationManager.getConfiguration("config").getDataPath("log-out-date"));
+        } catch (Exception e) {
+            logger.writeLog(null, ERROR_LOG, "Can't get access or correctly format from config.yml.");
+            logger.writeLog(null, ERROR_LOG, e.getMessage());
+        }
         connectorManager = new ConnectorManager(configurationManager);
 
         userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
@@ -49,8 +54,6 @@ public class Server
         /*
         * TEST - ZONE
         * */
-
-
 
         /*
          * TEST - ZONE
