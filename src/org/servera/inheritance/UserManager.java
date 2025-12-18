@@ -61,7 +61,7 @@ public class UserManager
     {
         if (userMap.containsKey(name))
         {
-            
+            throw new UnknowUser("Unknow user trying to login -> " + name);
         }
         return userMap.get(name);
     }
