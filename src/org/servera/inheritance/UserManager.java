@@ -59,7 +59,7 @@ public class UserManager
 
     public User getUser(String name)
     {
-        if (userMap.containsKey(name))
+        if (!userMap.containsKey(name))
         {
             throw new UnknowUser("Unknow user trying to login -> " + name);
         }
