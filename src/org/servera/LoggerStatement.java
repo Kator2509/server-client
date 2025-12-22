@@ -1,10 +1,13 @@
 package org.servera;
 
+import org.servera.config.ConfigException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import static org.servera.LogArguments.*;
 import static org.servera.Logger.writeLog;
+import static org.servera.config.ConfigurationManager.getConfiguration;
 
 public abstract class LoggerStatement
 {
@@ -57,18 +60,31 @@ public abstract class LoggerStatement
     }
 
     public static void debug_log(String name, String message){
-        writeLog(name, DEBUG, message);
+        try {
+            if(Boolean.parseBoolean(getConfiguration("config").getDataPath("debug").toString())) {
+                writeLog(name, DEBUG, message);
+            }
+        } catch (ConfigException e)
+        {
+            warn_log(null, "Debug log can be not fully.");
+        }
     }
 
     public static void debug_log(String name, ArrayList<String> mapLog){
-        var map = new HashMap<String, String>();
+        try {
+            if(Boolean.parseBoolean(getConfiguration("config").getDataPath("debug").toString())) {
+                var map = new HashMap<String, String>();
 
-        for(String var1:mapLog)
+                for (String var1 : mapLog) {
+                    map.put(DEBUG, var1);
+                }
+
+                writeLog(name, map);
+                map.clear();
+            }
+        } catch (ConfigException e)
         {
-            map.put(DEBUG, var1);
+            warn_log(null, "Debug log can be not fully.");
         }
-
-        writeLog(name, map);
-        map.clear();
     }
 }

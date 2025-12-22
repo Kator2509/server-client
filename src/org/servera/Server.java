@@ -17,8 +17,7 @@ import java.net.SocketTimeoutException;
 import java.util.*;
 
 import static org.servera.Logger.logIsOverload;
-import static org.servera.LoggerStatement.error_log;
-import static org.servera.LoggerStatement.log;
+import static org.servera.LoggerStatement.*;
 import static org.servera.config.ConfigurationManager.getConfiguration;
 
 public class Server
