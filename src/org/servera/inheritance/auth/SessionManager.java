@@ -4,7 +4,6 @@ import org.servera.inheritance.User;
 
 import java.io.IOException;
 import java.net.Inet4Address;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;

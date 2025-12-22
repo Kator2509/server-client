@@ -53,7 +53,7 @@ public class Server
 
         permissionManager = new PermissionManager();
         authListener = new AuthListener();
-        dispatcher = new CommandDispatcher(getConfiguration("language"), permissionManager, userManager, connectorManager, configurationManager);
+        dispatcher = new CommandDispatcher(permissionManager, userManager);
 
         /*
         * TEST - ZONE
@@ -90,7 +90,7 @@ public class Server
 
             permissionManager = new PermissionManager();
             authListener = new AuthListener();
-            dispatcher = new CommandDispatcher(getConfiguration("language"), permissionManager, userManager, connectorManager, configurationManager);
+            dispatcher = new CommandDispatcher(permissionManager, userManager);
             ServerExecute.reboot();
             return true;
         }

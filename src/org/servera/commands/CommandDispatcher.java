@@ -1,18 +1,14 @@
 package org.servera.commands;
 
-import org.servera.DataBasePSQL.ConnectorManager;
-import org.servera.Logger;
 import org.servera.Server;
 import org.servera.config.ConfigException;
-import org.servera.config.Configuration;
-import org.servera.config.ConfigurationManager;
 import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
 
 import java.util.*;
 
-import static org.servera.LogArguments.*;
+import static org.servera.DataBasePSQL.ConnectorManager.getConnect;
 import static org.servera.LoggerStatement.*;
 import static org.servera.config.ConfigurationManager.getConfiguration;
 import static org.servera.inheritance.SPermission.PermissionManager.isUserHaveGroup;
@@ -21,19 +17,13 @@ import static org.servera.inheritance.SPermission.PermissionManager.isUserPermis
 public class CommandDispatcher implements Dispatcher
 {
     protected Map<String, Command> commandMap = new HashMap<>();
-    protected Configuration configuration;
     protected PermissionManager permissionManager;
     protected UserManager userManager;
-    protected ConfigurationManager configurationManager;
-    protected ConnectorManager connectorManager;
     protected ServerDispatcher dispatcher;
 
-    public CommandDispatcher(Configuration configuration, PermissionManager permissionManager, UserManager userManager, ConnectorManager connectorManager, ConfigurationManager configurationManager){
-        this.configuration = configuration;
+    public CommandDispatcher(PermissionManager permissionManager, UserManager userManager){
         this.permissionManager = permissionManager;
         this.userManager = userManager;
-        this.connectorManager = connectorManager;
-        this.configurationManager = configurationManager;
         if (this.permissionManager != null)
         {
             log(null, "Permission loaded success.");
@@ -47,9 +37,8 @@ public class CommandDispatcher implements Dispatcher
         log(null, "Loaded success.");
     }
 
-    public CommandDispatcher(Map<String, Command> commandMap, Configuration configuration, PermissionManager permissionManager)
+    public CommandDispatcher(Map<String, Command> commandMap, PermissionManager permissionManager)
     {
-        this.configuration = configuration;
         this.commandMap = commandMap;
         this.permissionManager = permissionManager;
         if (this.permissionManager != null)
@@ -69,7 +58,7 @@ public class CommandDispatcher implements Dispatcher
         this.register(new Server.callReboot("reboot", new ArrayList<>(List.of("System.reboot"))));
         this.register(new UserManager.UserCommand("user",
                 getConfiguration("config")));
-        this.register(new PermissionManager.PermissionCMD("permission", connectorManager.getConnect("UserDataBase")));
+        this.register(new PermissionManager.PermissionCMD("permission", getConnect("UserDataBase")));
         log(null, "Registered system commands.");
     }
 
@@ -103,7 +92,7 @@ public class CommandDispatcher implements Dispatcher
                     warn_log(null, "User -> " + user.getFirstName() + ":" + user.getUUID() + " trying to send command.");
                     warn_log(null, "Can't execute command - " + name);
                     try {
-                        log(null, "FAQ - " + name + "\n" + configuration.getDataPath(foundCommand(name)));
+                        log(null, "FAQ - " + name + "\n" + getConfiguration("language").getDataPath(foundCommand(name)));
                     } catch (ConfigException e) {
                         error_log(null, "Can't call a config.");
                         error_log(null, e.getMessage());
@@ -118,7 +107,7 @@ public class CommandDispatcher implements Dispatcher
             error_log(null, "Can't execute command - " + name + ". Don't found the command.");
             if(!foundCommand(name).isEmpty()) {
                 try {
-                    log(null, "Maybe you mean \"" + configuration.getDataPath(foundCommand(name)) + "\"");
+                    log(null, "Maybe you mean \"" + getConfiguration("language").getDataPath(foundCommand(name)) + "\"");
                 } catch (ConfigException e) {
                     error_log(null, "Can't call a message from language config. Exist a message?");
                     error_log(null, e.getMessage());
@@ -152,11 +141,8 @@ public class CommandDispatcher implements Dispatcher
     {
         this.dispatcher.callStop();
         this.commandMap = null;
-        this.configuration = null;
         this.permissionManager = null;
         this.userManager = null;
-        this.configurationManager = null;
-        this.connectorManager = null;
     }
 
     private static class ServerDispatcher
