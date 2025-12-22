@@ -9,12 +9,12 @@ import java.util.*;
 import java.util.jar.JarFile;
 
 import static org.servera.LogArguments.*;
+import static org.servera.LoggerStatement.*;
 
 public class ConfigurationFileManager
 {
     private String pathToSystem;
     protected List<File> fileMap = new ArrayList<>();
-    protected Logger logger = new Logger(this.getClass());
 
     public ConfigurationFileManager()
     {
@@ -23,10 +23,10 @@ public class ConfigurationFileManager
             load();
             if (!check_system())
             {
-                logger.writeLog(null, LOG,"System restored.");
+                log(null,"System restored.");
             }
         } catch (URISyntaxException e) {
-            logger.writeLog(null, ERROR_LOG, e.getMessage());
+            error_log(null, e.getMessage());
         }
     }
 
@@ -43,7 +43,7 @@ public class ConfigurationFileManager
                 }
             }
         } catch (IOException e) {
-            logger.writeLog(null, ERROR_LOG, e.getMessage());
+            error_log(null, e.getMessage());
         }
     }
 
@@ -57,27 +57,27 @@ public class ConfigurationFileManager
             }
         }
         if (!var1.isEmpty()) {
-            logger.writeLog(null, WARN_LOG, "System need to override. File listener was called.");
-            FileListener.restoreSystem(var1, this.pathToSystem, logger);
+            warn_log(null, "System need to override. File listener was called.");
+            FileListener.restoreSystem(var1, this.pathToSystem);
             return false;
         }
         else
         {
-            logger.writeLog(null, LOG, "System already. Continue.");
+            log(null, "System already. Continue.");
             return true;
         }
     }
 
     private static class FileListener
     {
-        private static void restoreSystem(List<File> array, String pathToSystem, Logger logger) {
+        private static void restoreSystem(List<File> array, String pathToSystem) {
             for (File var : array) {
                 try {
                     if (var.getPath().contains(".")) {
                         if (!var.createNewFile()) {
-                            logger.writeLog(null, LOG, "Can't create a file - " + var.getPath());
+                            log(null, "Can't create a file - " + var.getPath());
                         }
-                        logger.writeLog(null, LOG, "File " + var.getName() + " created. Start filling configuration.");
+                        log(null, "File " + var.getName() + " created. Start filling configuration.");
 
                         try {
                             var var1 = Server.class.getResourceAsStream("/System/" + var.getPath().substring(pathToSystem
@@ -95,17 +95,17 @@ public class ConfigurationFileManager
                             var3.close();
                             var1.close();
                         } catch (IOException e) {
-                            logger.writeLog(null, ERROR_LOG, e.getMessage());
+                            error_log(null, e.getMessage());
                         }
-                        logger.writeLog(null, LOG, "Configuration " + var.getName() + " filled.");
+                        log(null, "Configuration " + var.getName() + " filled.");
 
                     } else {
                         if (!var.mkdirs()) {
-                            logger.writeLog(null, WARN_LOG, "Can't create a directory - " + var.getPath());
+                            warn_log(null, "Can't create a directory - " + var.getPath());
                         }
                     }
                 } catch (IOException e) {
-                    logger.writeLog(null, ERROR_LOG, e.getMessage());
+                    error_log(null, e.getMessage());
                 }
             }
         }

@@ -9,11 +9,13 @@ import java.util.Map;
 
 import static org.servera.LogArguments.ERROR_LOG;
 import static org.servera.LogArguments.LOG;
+import static org.servera.LoggerStatement.error_log;
+import static org.servera.LoggerStatement.log;
+import static org.servera.config.ConfigurationManager.getConfiguration;
 
 public class ConnectorManager
 {
     protected Map<String, Connector> connectorMap = new HashMap<>();
-    protected Logger logger = new Logger(this.getClass());
     protected ConfigurationManager configurationManager;
 
     public ConnectorManager(ConfigurationManager configurationManager){
@@ -33,7 +35,7 @@ public class ConnectorManager
         if(!connectorMap.containsValue(connector))
         {
             connectorMap.put(name, connector);
-            logger.writeLog(null, LOG, "Created new connection - " + name);
+            log(null, "Created new connection - " + name);
         }
     }
 
@@ -41,13 +43,13 @@ public class ConnectorManager
     {
         try {
             this.register("UserDataBase", new Connector(
-                    this.configurationManager.getConfiguration("DataBase").getDataPath("UserDataBase.login").toString(),
-                    this.configurationManager.getConfiguration("DataBase").getDataPath("UserDataBase.password").toString(),
-                    this.configurationManager.getConfiguration("DataBase").getDataPath("UserDataBase.url").toString()));
-            logger.writeLog(null, LOG, "Loaded success.");
+                    getConfiguration("DataBase").getDataPath("UserDataBase.login").toString(),
+                    getConfiguration("DataBase").getDataPath("UserDataBase.password").toString(),
+                    getConfiguration("DataBase").getDataPath("UserDataBase.url").toString()));
+            log(null, "Loaded success.");
         } catch (ConfigException e) {
-            logger.writeLog(null, ERROR_LOG, "Loaded with errors.");
-            logger.writeLog(null, ERROR_LOG, e.getMessage());
+            error_log(null, "Loaded with errors.");
+            error_log(null, e.getMessage());
         }
     }
 
@@ -57,7 +59,7 @@ public class ConnectorManager
         {
             return this.connectorMap.get(name);
         }
-        logger.writeLog(null, ERROR_LOG, "DataBase don't found - " + name + ". That can be cause a problem.");
+        error_log(null, "DataBase don't found - " + name + ". That can be cause a problem.");
         return null;
     }
 }

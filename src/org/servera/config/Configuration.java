@@ -12,13 +12,13 @@ import java.io.*;
 import java.util.*;
 
 import static org.servera.LogArguments.*;
+import static org.servera.LoggerStatement.*;
 
 public class Configuration implements ConfigurationInterface
 {
     private final String path, type;
     private Yaml yaml;
     protected Map<String, Object> data;
-    protected Logger logger = new Logger(this.getClass());
 
     public Configuration(String path, String type)
     {
@@ -47,7 +47,7 @@ public class Configuration implements ConfigurationInterface
             }
             return new JSONParser(dataBuilder.toString()).getData();
         } catch (IOException | UncorrectedFormatException e) {
-            logger.writeLog(null, ERROR_LOG, e.getMessage());
+            error_log(null, e.getMessage());
         }
         return null;
     }
@@ -57,7 +57,7 @@ public class Configuration implements ConfigurationInterface
         try {
             var = new FileInputStream(this.path);
         } catch (FileNotFoundException e) {
-            logger.writeLog(null, ERROR_LOG, e.getMessage());
+            error_log(null, e.getMessage());
         }
         return yaml.load(var);
     }
@@ -76,7 +76,7 @@ public class Configuration implements ConfigurationInterface
         }
         if (var == null && var1 == null)
         {
-            logger.writeLog(null, ERROR_LOG, new ConfigException("Can't get a key list. var or var1 empty.").getMessage());
+            error_log(null, new ConfigException("Can't get a key list. var or var1 empty.").getMessage());
             throw new ConfigException("Can't get a key list. var or var1 empty.");
         }
         return container.split("\\.").length > 1 ? ((HashMap<String, Object>) var1).keySet().stream().toList()
@@ -102,7 +102,7 @@ public class Configuration implements ConfigurationInterface
         }
         if (var == null && var1 == null)
         {
-            logger.writeLog(null, ERROR_LOG, new ConfigException("Can't get a key list. var or var1 empty.").getMessage());
+            error_log(null, new ConfigException("Can't get a key list. var or var1 empty.").getMessage());
             throw new ConfigException("Can't get a key list. var or var1 empty.");
         }
         return container.split("\\.").length > 1 ? var1 : var;
@@ -118,7 +118,7 @@ public class Configuration implements ConfigurationInterface
     public boolean setDataPath(@NotNull String container, @NotNull Object newData) throws ConfigException {
         if(Objects.equals(this.type, "json"))
         {
-            logger.writeLog(null, WARN_LOG, new ConfigException("Trying to set data in json. Supported set only for YAML.").getMessage());
+            warn_log(null, new ConfigException("Trying to set data in json. Supported set only for YAML.").getMessage());
             throw new ConfigException("Trying to set data in json. Supported set only for YAML.");
         }
         else if(Objects.equals(this.type, "yaml"))
@@ -129,7 +129,7 @@ public class Configuration implements ConfigurationInterface
             }
             else
             {
-                logger.writeLog(null, ERROR_LOG, new ConfigException("Keys not found.").getMessage());
+                error_log(null, new ConfigException("Keys not found.").getMessage());
             }
             DumperOptions dp = new DumperOptions();
             dp.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
@@ -138,14 +138,14 @@ public class Configuration implements ConfigurationInterface
                 FileWriter fl = new FileWriter(this.path);
                 this.yaml.dump(this.data ,fl);
                 fl.close();
-                logger.writeLog(null, LOG, "Change configuration data " + container + " -> " + newData);
+                log(null, "Change configuration data " + container + " -> " + newData);
             } catch (IOException e) {
-                logger.writeLog(null, ERROR_LOG, e.getMessage());
+                error_log(null, e.getMessage());
             }
         }
         else
         {
-            logger.writeLog(null, ERROR_LOG, new ConfigException("Uncorrected type. Supported type json or yaml.").getMessage());
+            error_log(null, new ConfigException("Uncorrected type. Supported type json or yaml.").getMessage());
             throw new ConfigException("Uncorrected type. Supported type json or yaml.");
         }
         return false;

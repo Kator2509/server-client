@@ -13,6 +13,8 @@ import org.servera.inheritance.UserManager;
 import java.util.*;
 
 import static org.servera.LogArguments.*;
+import static org.servera.LoggerStatement.*;
+import static org.servera.config.ConfigurationManager.getConfiguration;
 import static org.servera.inheritance.SPermission.PermissionManager.isUserHaveGroup;
 import static org.servera.inheritance.SPermission.PermissionManager.isUserPermission;
 
@@ -25,7 +27,6 @@ public class CommandDispatcher implements Dispatcher
     protected ConfigurationManager configurationManager;
     protected ConnectorManager connectorManager;
     protected ServerDispatcher dispatcher;
-    protected Logger logger = new Logger(this.getClass());
 
     public CommandDispatcher(Configuration configuration, PermissionManager permissionManager, UserManager userManager, ConnectorManager connectorManager, ConfigurationManager configurationManager){
         this.configuration = configuration;
@@ -35,15 +36,15 @@ public class CommandDispatcher implements Dispatcher
         this.configurationManager = configurationManager;
         if (this.permissionManager != null)
         {
-            logger.writeLog(null, LOG, "Permission loaded success.");
+            log(null, "Permission loaded success.");
         }
         else
         {
-            logger.writeLog(null, WARN_LOG, "Permission not loaded. That can cause a problem.");
+            warn_log(null, "Permission not loaded. That can cause a problem.");
         }
         registerDefault();
         this.dispatcher = new ServerDispatcher(this, this.userManager);
-        logger.writeLog(null, LOG, "Loaded success.");
+        log(null, "Loaded success.");
     }
 
     public CommandDispatcher(Map<String, Command> commandMap, Configuration configuration, PermissionManager permissionManager)
@@ -53,13 +54,13 @@ public class CommandDispatcher implements Dispatcher
         this.permissionManager = permissionManager;
         if (this.permissionManager != null)
         {
-            logger.writeLog(null, LOG, "Permission loaded success.");
+            log(null, "Permission loaded success.");
         }
         else
         {
-            logger.writeLog(null, WARN_LOG, "Permission not loaded. That can cause a problem.");
+            warn_log(null, "Permission not loaded. That can cause a problem.");
         }
-        logger.writeLog(null, LOG, "Loaded success.");
+        log(null, "Loaded success.");
     }
 
     private void registerDefault()
@@ -67,9 +68,9 @@ public class CommandDispatcher implements Dispatcher
         this.register(new Server.ShutDown("shutdown", new ArrayList<>(List.of("System.shutdown"))));
         this.register(new Server.callReboot("reboot", new ArrayList<>(List.of("System.reboot"))));
         this.register(new UserManager.UserCommand("user", connectorManager.getConnect("UserDataBase"),
-                configurationManager.getConfiguration("DefaultParameters")));
+                getConfiguration("config")));
         this.register(new PermissionManager.PermissionCMD("permission", connectorManager.getConnect("UserDataBase")));
-        logger.writeLog(null, LOG,"Registered system commands.");
+        log(null, "Registered system commands.");
     }
 
     @Override
@@ -83,7 +84,7 @@ public class CommandDispatcher implements Dispatcher
     {
         if(!(this.commandMap.containsKey(command.getName()) || this.commandMap.containsValue(command))) {
             this.commandMap.put(command.getName(), command);
-            logger.writeLog(null, LOG, "Register command - " + command.getName());
+            log(null, "Register command - " + command.getName());
         }
     }
 
@@ -99,27 +100,27 @@ public class CommandDispatcher implements Dispatcher
             if(isUserPermission(user, command.getPermission().getFirst()) || isUserHaveGroup(user, command.getPermission().getFirst())) {
                 if (!executeCommand(command, user))
                 {
-                    logger.writeLog(null, WARN_LOG, "Can't execute command - " + name);
+                    warn_log(null, "Can't execute command - " + name);
                     try {
-                        logger.writeLog(null, LOG, "FAQ - " + name + "\n" + configuration.getDataPath(foundCommand(name)));
+                        log(null, "FAQ - " + name + "\n" + configuration.getDataPath(foundCommand(name)));
                     } catch (ConfigException e) {
-                        logger.writeLog(null, ERROR_LOG, "Can't call a config.");
-                        logger.writeLog(null, ERROR_LOG, e.getMessage());
+                        error_log(null, "Can't call a config.");
+                        error_log(null, e.getMessage());
                     }
                 }
             }
             else {
-                logger.writeLog(null, WARN_LOG, "You don't have permission.");
+                warn_log(null, "You don't have permission.");
             }
         } else
         {
-            logger.writeLog(null, ERROR_LOG, "Can't execute command - " + name + ". Don't found the command.");
+            error_log(null, "Can't execute command - " + name + ". Don't found the command.");
             if(!foundCommand(name).isEmpty()) {
                 try {
-                    logger.writeLog(null, LOG, "Maybe you mean \"" + configuration.getDataPath(foundCommand(name)) + "\"");
+                    log(null, "Maybe you mean \"" + configuration.getDataPath(foundCommand(name)) + "\"");
                 } catch (ConfigException e) {
-                    logger.writeLog(null, ERROR_LOG, "Can't call a message from language config. Exist a message?");
-                    logger.writeLog(null, ERROR_LOG, e.getMessage());
+                    error_log(null, "Can't call a message from language config. Exist a message?");
+                    error_log(null, e.getMessage());
                 }
             }
         }
@@ -142,7 +143,7 @@ public class CommandDispatcher implements Dispatcher
 
     private boolean executeCommand(Command command, User user)
     {
-        logger.writeLog(null, LOG, "Executed command - " + command.getName());
+        log(null, "Executed command - " + command.getName());
         return command.run(user);
     }
 
@@ -161,11 +162,10 @@ public class CommandDispatcher implements Dispatcher
     {
         protected Thread dispatcher_core;
         protected boolean run = true;
-        protected Logger logger = new Logger(ServerDispatcher.class);
 
         public void callStop()
         {
-            logger.writeLog(null, LOG, "Dispatcher call stop...");
+            log(null, "Dispatcher call stop...");
             run = false;
         }
 
@@ -200,8 +200,8 @@ public class CommandDispatcher implements Dispatcher
                         try {
                             dispatcher.runCommand(command, var0, userManager.getUser("Console"));
                         } catch (CommandException e) {
-                            logger.writeLog(null, ERROR_LOG, "Command running with errors.");
-                            logger.writeLog(null, ERROR_LOG, e.getMessage());
+                            error_log(null, "Command running with errors.");
+                            error_log(null, e.getMessage());
                         }
                     }
                 }

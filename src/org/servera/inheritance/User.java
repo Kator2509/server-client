@@ -7,9 +7,11 @@ import java.util.UUID;
 public class User
 {
     protected UUID uuid;
-    private String firstName, secondName, tab;
+    private final String firstName;
+    private String secondName;
+    private final String tab;
 
-    public User(UUID uuid, String tab, String firstName, @Nullable String secondName)
+    public User(UUID uuid, String tab, String firstName, String secondName)
     {
         this.firstName = firstName;
         this.secondName = secondName;
@@ -34,5 +36,9 @@ public class User
 
     public String getTab() {
         return this.tab;
+    }
+
+    public String getSecondName() {
+        return this.secondName;
     }
 }

@@ -1,11 +1,10 @@
 package org.servera.config.FileManager;
 
-import org.servera.Logger;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static org.servera.LogArguments.ERROR_LOG;
-import static org.servera.LogArguments.WARN_LOG;
+import static org.servera.LoggerStatement.error_log;
+import static org.servera.LoggerStatement.warn_log;
 
 public class JSONParser
 {
@@ -37,7 +36,6 @@ public class JSONParser
     private static class Parser
     {
         protected static Map<String, Object> map = new HashMap<>();
-        protected static Logger logger = new Logger(Parser.class);
 
         protected static Map<String, Object> parse(String data, String keys) {
             for(ArrayList<Byte> var:formatted(data.getBytes(StandardCharsets.UTF_8)))
@@ -87,7 +85,7 @@ public class JSONParser
                     }
                     else
                     {
-                        logger.writeLog(null, WARN_LOG, "Key already exist -> " + keyBuilder);
+                        warn_log(null, "Key already exist -> " + keyBuilder);
                         throw new RepeatException("Key already exist -> " + keyBuilder);
                     }
                 }
@@ -214,7 +212,7 @@ public class JSONParser
                 }
                 if (!skip) {
                     if (var1 == 58 && var6 && !var3.toString().contains("{")) {
-                        logger.writeLog(null, ERROR_LOG, "Uncorrected format json, separation containers -> " + var3 + " ?");
+                        error_log(null, "Uncorrected format json, separation containers -> " + var3 + " ?");
                     }
 
                     if (var1 == 58) {
@@ -224,7 +222,7 @@ public class JSONParser
                         var6 = false;
                         var3 = new StringBuilder();
                     } else if (var1 == 44 || var1 == 125 && !var6) {
-                        logger.writeLog(null, ERROR_LOG, "Uncorrected format json, there container -> " + var3 + " ?");
+                        error_log(null, "Uncorrected format json, there container -> " + var3 + " ?");
                     }
                 }
             }
@@ -264,7 +262,7 @@ public class JSONParser
                         }
                         else
                         {
-                            logger.writeLog(null, WARN_LOG, "Uncorrected format. Found duplicate container -> " + Arrays.toString(var2.toArray()));
+                            warn_log(null, "Uncorrected format. Found duplicate container -> " + Arrays.toString(var2.toArray()));
                             throw new RepeatException("Uncorrected format. Found duplicate container -> " + Arrays.toString(var2.toArray()));
                         }
                     }

@@ -13,22 +13,22 @@ import java.sql.Statement;
 import java.util.*;
 
 import static org.servera.LogArguments.*;
+import static org.servera.LoggerStatement.*;
 import static org.servera.inheritance.SPermission.PermissionManager.isUserPermission;
 
 public class UserManager
 {
     protected static Map<String, User> userMap = new HashMap<String, User>();
-    protected static Logger logger = new Logger(UserManager.class);
     protected Connector connector;
 
     public UserManager(Connector connector){
         try {
             this.connector = connector;
             loadUsers();
-            logger.writeLog(null, LOG, "Loaded success.");
+            log(null, "Loaded success.");
         } catch (SQLException e)
         {
-            logger.writeLog(null, ERROR_LOG, "Loaded with errors...");
+            error_log(null, "Loaded with errors...");
         }
     }
 
@@ -52,7 +52,7 @@ public class UserManager
                 }
 
             } catch (SQLException e) {
-                logger.writeLog(null, ERROR_LOG, "Can't load a user data base.");
+                error_log(null, "Can't load a user data base.");
             }
         });
     }
@@ -61,7 +61,8 @@ public class UserManager
     {
         if (!userMap.containsKey(name))
         {
-            throw new UnknowUser("Unknow user trying to login -> " + name);
+            error_log(null, "Unknow user -> " + name);
+            throw new UnknowUser("Unknow user -> " + name);
         }
         return userMap.get(name);
     }
@@ -137,15 +138,15 @@ public class UserManager
                         var.execute(var1);
                         userMap.put(name, new User(uuid, String.valueOf(tab), name));
                         var.close();
-                        logger.writeLog(null, LOG, "User " + name + " created.");
+                        log(null, "User " + name + " created.");
                     }
                     else
                     {
-                        logger.writeLog(null, LOG,"User " + name + " exists.");
+                        log(null, "User " + name + " exists.");
                     }
                 } catch (SQLException e) {
-                    logger.writeLog(null, ERROR_LOG, "Can't create a user - " + name);
-                    logger.writeLog(null, ERROR_LOG, e.getMessage());
+                    error_log(null, "Can't create a user - " + name);
+                    error_log(null, e.getMessage());
                 }
             });
         }
@@ -157,7 +158,6 @@ public class UserManager
                 try{
                     Statement var = connection.createStatement();
                     String request = "SELECT UUID, TAB_NUM, FIRSTNAME, SECONDNAME, \"group\" FROM US_USERS WHERE FIRSTNAME = '" + name + "'";
-
                     var.execute(request);
 
                     ResultSet rs = var.getResultSet();
@@ -170,16 +170,16 @@ public class UserManager
                                 rs.getString(2),
                                 rs.getString(3),
                                 rs.getString(4)));
-                        logger.writeLog(null, LOG, "User " + name + " updated.");
+                        log(null, "User " + name + " updated.");
                     }
                     else
                     {
-                        logger.writeLog(null, LOG, "User " + name + " not found.");
+                        log(null, "User " + name + " not found.");
                     }
                 } catch (SQLException e)
                 {
-                    logger.writeLog(null, ERROR_LOG, "Can't update a user - " + name);
-                    logger.writeLog(null, ERROR_LOG, e.getMessage());
+                    error_log(null, "Can't update a user - " + name);
+                    error_log(null, e.getMessage());
                 }
             });
         }
@@ -201,16 +201,16 @@ public class UserManager
                         var.execute("DELETE FROM US_USERS WHERE FIRSTNAME = '" + name + "'");
                         userMap.remove(name);
 
-                        logger.writeLog(null, LOG, "User " + name + " deleted.");
+                        log(null, "User " + name + " deleted.");
                     }
                     else
                     {
-                        logger.writeLog(null, LOG, "User " + name + " not found.");
+                        log(null, "User " + name + " not found.");
                     }
                 } catch (SQLException e)
                 {
-                    logger.writeLog(null, ERROR_LOG, "Can't delete user " + name);
-                    logger.writeLog(null, ERROR_LOG, e.getMessage());
+                    error_log(null, "Can't delete user " + name);
+                    error_log(null, e.getMessage());
                 }
             });
         }
@@ -239,7 +239,7 @@ public class UserManager
 
                         if(rs1.getInt(1) > 0)
                         {
-                            logger.writeLog(null, LOG, "User " + name + " already have permission "+ permission);
+                            log(null, "User " + name + " already have permission "+ permission);
                             granted = true;
                             return;
                         }
@@ -249,11 +249,11 @@ public class UserManager
                         if(rs.getRow() > 0)
                         {
                             var1.execute("insert into us_perm (us_tab, us_permission, dcre) values ((select tab_num from us_users where LOWER(firstname) = LOWER('" + name + "')), '" + rs.getInt(1) + "', now())");
-                            logger.writeLog(null, LOG, "User " + name + " granted permission " + permission);
+                            log(null, "User " + name + " granted permission " + permission);
                         }
                         else
                         {
-                            logger.writeLog(null, WARN_LOG, "Don't found a permission " + permission);
+                            warn_log(null, "Don't found a permission " + permission);
                         }
                         granted = true;
                     }
@@ -262,16 +262,16 @@ public class UserManager
                         if(rs.getRow() > 0)
                         {
                             var1.execute("delete from us_perm where us_tab = (select tab_num from us_users where LOWER(firstname) = LOWER('" + name + "')) and us_permission = '" + rs.getInt(1) + "';");
-                            logger.writeLog(null, LOG, "User " + name + " removed permission " + permission);
+                            log(null, "User " + name + " removed permission " + permission);
                         }
                         else
                         {
-                            logger.writeLog(null, LOG, "Don't found a permission " + permission);
+                            log(null, "Don't found a permission " + permission);
                         }
                         granted = true;
                     }
                 } catch (SQLException e) {
-                    logger.writeLog(null, ERROR_LOG, e.getMessage());
+                    error_log(null, e.getMessage());
                 }
             });
             return granted;
@@ -285,7 +285,7 @@ public class UserManager
                 try {
                     var2 = (int) (100 + (random.nextDouble() * 2.0) * (Math.pow(10, (int) this.configuration.getDataPath("max-size-tab")) - 100));
                 } catch (ConfigException e) {
-                    logger.writeLog(null, ERROR_LOG, "Can't call a Default config.");
+                    error_log(null, "Can't call a Default config.");
                     var2 = (int) (100 + (random.nextDouble() * 2.0) * (Math.pow(10, 7 - 100)));
                 }
                 Statement var1 = connection.createStatement();

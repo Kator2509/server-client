@@ -10,77 +10,70 @@ import java.util.Objects;
 
 import static org.servera.LogArguments.ERROR_LOG;
 
-public class Logger implements LoggerInterface
+public class Logger
 {
-    protected Class<?> parent;
-    protected String pathToSystem;
+    protected static String pathToSystem;
 
-    public Logger(Class<?> parent)
+    public Logger()
     {
-        this.parent = parent;
-        this.pathToSystem = parent.getProtectionDomain().getCodeSource().getLocation().getPath()
-                .substring(0, parent.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "log" + File.separator;
-        new File(this.pathToSystem).mkdir();
+        pathToSystem = Server.class.getProtectionDomain().getCodeSource().getLocation().getPath()
+                .substring(0, Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "log" + File.separator;
+        new File(pathToSystem).mkdir();
         logIsHave(null);
     }
 
-    public Logger(Class<?> parent, String name)
+    public Logger(String name)
     {
-        this.parent = parent;
-        this.pathToSystem = parent.getProtectionDomain().getCodeSource().getLocation().getPath()
-                .substring(0, parent.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "log" + File.separator;
-        new File(this.pathToSystem).mkdir();
+        pathToSystem = Server.class.getProtectionDomain().getCodeSource().getLocation().getPath()
+                .substring(0, Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "log" + File.separator;
+        new File(pathToSystem).mkdir();
         logIsHave(name);
     }
 
-    public Logger(String customPath, Class<?> parent, String name)
+    public Logger(String customPath, String name)
     {
-        this.parent = parent;
-        this.pathToSystem = customPath + File.separator + "log" + File.separator;
-        new File(this.pathToSystem).mkdir();
+        pathToSystem = customPath + File.separator + "log" + File.separator;
+        new File(pathToSystem).mkdir();
         logIsHave(name);
     }
 
-    @Override
-    public void writeLog(String name, String argument, String message)
+    public static void writeLog(String name, String argument, String message)
     {
-        System.out.println(LocalDateTime.now() + argument + " [" + this.parent.getName().substring(this.parent.getName().lastIndexOf('.') + 1) + "]: " + message);
-        var temp = LocalDateTime.now() + argument + " [" + this.parent.getName().substring(this.parent.getName().lastIndexOf('.') + 1) + "]: " + message + "\n";
+        System.out.println(LocalDateTime.now() + argument + " [" + Thread.currentThread().getStackTrace()[3].getClassName() + "]: " + message);
+        var temp = LocalDateTime.now() + argument + " [" + Thread.currentThread().getStackTrace()[3].getClassName() + "]: " + message + "\n";
         var logName = LocalDate.now() + "_log.log";
 
-        if (name == null)
-        {
+        if (name == null) {
             try {
                 var var3 = new ByteArrayInputStream(temp.getBytes(StandardCharsets.UTF_8));
-                var var1 = new FileOutputStream(this.pathToSystem + logName, true);
+                var var1 = new FileOutputStream(pathToSystem + logName, true);
                 int len;
                 byte[] var2 = temp.getBytes();
 
-                while((len = var3.read(var2)) > 0)
-                {
+                while ((len = var3.read(var2)) > 0) {
                     var1.write(var2, 0, len);
                 }
 
                 var1.close();
                 var3.close();
-            } catch (IOException ignore){}
+            } catch (IOException ignore) {
+            }
         }
     }
 
-    @Override
-    public void writeLog(String name, Map<LogArguments, String> mapLog)
+    public static void writeLog(String name, Map<String , String> mapLog)
     {
-        for(Map.Entry<LogArguments, String> log:mapLog.entrySet())
+        for(Map.Entry<String, String> log:mapLog.entrySet())
         {
-            System.out.println(String.valueOf(LocalDateTime.now()) + log.getKey() + " [" + this.parent.getName().substring(this.parent.getName().lastIndexOf('.') + 1) + "]: " + log.getValue());
-            var temp = String.valueOf(LocalDateTime.now()) + log.getKey() + " [" + this.parent.getName().substring(this.parent.getName().lastIndexOf('.') + 1) + "]: " + log.getValue() + "\n";
+            System.out.println(LocalDateTime.now() + log.getKey() + " [" + Thread.currentThread().getStackTrace()[2].getClassName() + "]: " + log.getValue());
+            var temp = LocalDateTime.now() + log.getKey() + " [" + Thread.currentThread().getStackTrace()[2].getClassName() + "]: " + log.getValue() + "\n";
             var logName = LocalDate.now() + "_log.log";
 
             if (name == null)
             {
                 try {
                     var var3 = new ByteArrayInputStream(temp.getBytes(StandardCharsets.UTF_8));
-                    var var1 = new FileOutputStream(this.pathToSystem + logName, true);
+                    var var1 = new FileOutputStream(pathToSystem + logName, true);
                     int len;
                     byte[] var2 = temp.getBytes();
 
@@ -102,17 +95,17 @@ public class Logger implements LoggerInterface
             if(Objects.equals(name, null))
             {
                 var logName = LocalDate.now() + "_log.log";
-                if (!new File(this.pathToSystem + logName).exists()) {
-                    if (new File(this.pathToSystem + logName).createNewFile()) {
-                        writeLog(null, LogArguments.LOG, "Create log file " + this.pathToSystem + logName);
+                if (!new File(pathToSystem + logName).exists()) {
+                    if (new File(pathToSystem + logName).createNewFile()) {
+                        writeLog(null, LogArguments.LOG, "Create log file " + pathToSystem + logName);
                     }
                 }
             }
             else {
                 var customLogName = LocalDate.now() + name + ".log";
-                if (!new File(this.pathToSystem + customLogName).exists()) {
-                    if (new File(this.pathToSystem + customLogName).createNewFile()) {
-                        writeLog(name, LogArguments.LOG, "Created log file " + this.pathToSystem + customLogName);
+                if (!new File(pathToSystem + customLogName).exists()) {
+                    if (new File(pathToSystem + customLogName).createNewFile()) {
+                        writeLog(name, LogArguments.LOG, "Created log file " + pathToSystem + customLogName);
                     }
                 }
             }
@@ -121,10 +114,10 @@ public class Logger implements LoggerInterface
         }
     }
 
-    public void logIsOverload(String name, String path, int count)
+    public static void logIsOverload(String name, String path, int count)
     {
-        var var1 = new File(path == null ? parent.getProtectionDomain().getCodeSource().getLocation().getPath()
-                .substring(0, parent.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "log" + File.separator : path);
+        var var1 = new File(path == null ? Server.class.getProtectionDomain().getCodeSource().getLocation().getPath()
+                .substring(0, Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "log" + File.separator : path);
         var var2 = var1.listFiles();
         var var3 = new ArrayList<>();
         if(var2 != null) {

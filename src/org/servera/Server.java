@@ -4,7 +4,6 @@ import org.servera.DataBasePSQL.ConnectorManager;
 import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
 import org.servera.commands.CommandException;
-import org.servera.config.ConfigException;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.ConfigurationFileManager;
 import org.servera.inheritance.SPermission.PermissionManager;
@@ -17,7 +16,10 @@ import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.*;
 
-import static org.servera.LogArguments.*;
+import static org.servera.Logger.logIsOverload;
+import static org.servera.LoggerStatement.error_log;
+import static org.servera.LoggerStatement.log;
+import static org.servera.config.ConfigurationManager.getConfiguration;
 
 public class Server
 {
@@ -30,18 +32,17 @@ public class Server
     protected static ConfigurationFileManager configurationFileManager;
     protected static AuthListener authListener;
     protected static Thread serverThread;
-    protected static Logger logger = new Logger(Server.class);
 
     public static void main(String[] args)
     {
-        logger.writeLog(null, LOG, "Server starting loading...");
+        log(null, "Server starting loading...");
         configurationFileManager = new ConfigurationFileManager();
         configurationManager = new ConfigurationManager();
         try {
-            logger.logIsOverload(null, null, (Integer) configurationManager.getConfiguration("config").getDataPath("log-out-date"));
+            logIsOverload(null, null, (Integer) getConfiguration("config").getDataPath("log-out-date"));
         } catch (Exception e) {
-            logger.writeLog(null, ERROR_LOG, "Can't get access or correctly format from config.yml.");
-            logger.writeLog(null, ERROR_LOG, e.getMessage());
+            error_log(null, "Can't get access or correctly format from config.yml.");
+            error_log(null, e.getMessage());
         }
         connectorManager = new ConnectorManager(configurationManager);
 
@@ -49,11 +50,12 @@ public class Server
 
         permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"));
         authListener = new AuthListener(configurationManager);
-        dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager, userManager, connectorManager, configurationManager);
+        dispatcher = new CommandDispatcher(getConfiguration("language"), permissionManager, userManager, connectorManager, configurationManager);
 
         /*
         * TEST - ZONE
         * */
+
 
         /*
          * TEST - ZONE
@@ -84,7 +86,7 @@ public class Server
 
             permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"));
             authListener = new AuthListener(configurationManager);
-            dispatcher = new CommandDispatcher(configurationManager.getConfiguration("language"), permissionManager, userManager, connectorManager, configurationManager);
+            dispatcher = new CommandDispatcher(getConfiguration("language"), permissionManager, userManager, connectorManager, configurationManager);
             ServerExecute.reboot();
             return true;
         }
@@ -108,56 +110,6 @@ public class Server
             return true;
         }
     }
-
-//    private static class ServerCommandDispatcher
-//    {
-//        private static boolean callReboot = false;
-//
-//        private static void reboot()
-//        {
-//            callReboot = true;
-//        }
-//
-//        private static void run()
-//        {
-//            LinkedList<String> var0 = new LinkedList<>();
-//            dispatcherThread = new Thread(() -> {
-//                Scanner entry = new Scanner(System.in);
-//                while(isRun() && !callReboot) {
-//                    var0.clear();
-//                    var command = "";
-//                    var i = 0;
-//
-//                    System.out.print(userManager.getUser("Console").getFirstName() + ":~$ ");
-//                    for (String arguments : entry.nextLine().split(" ")) {
-//                        if (i == 0) {
-//                            command = arguments;
-//                            i++;
-//                        } else {
-//                            var0.add(arguments);
-//                        }
-//                    }
-//
-//                    try {
-//                        dispatcher.runCommand(command, var0, userManager.getUser("Console"));
-//                    } catch (CommandException e) {
-//                        logger.writeLog(null, ERROR_LOG, "Command running with errors.");
-//                        logger.writeLog(null, ERROR_LOG, e.getMessage());
-//                    }
-//                }
-//                if (!isRun())
-//                {
-//                    logger.writeLog(null, LOG, "Dispatcher closed.");
-//                }
-//                if (callReboot)
-//                {
-//                    callReboot = false;
-//                    run();
-//                }
-//            });
-//            dispatcherThread.start();
-//        }
-//    }
 
         private static class ServerExecute
         {
@@ -184,19 +136,19 @@ public class Server
                             }
                             if(!isRun())
                             {
-                                logger.writeLog(null, LOG, "Server closed.");
+                                log(null, "Server closed.");
                             }
                         } catch (SocketTimeoutException ignore) {}
                         catch (IOException e) {
-                            logger.writeLog(null, ERROR_LOG, "Server stopped as crash. Trying to reboot server.");
-                            logger.writeLog(null, ERROR_LOG, "If you see that cause one more. Please report as that.");
-                            logger.writeLog(null, ERROR_LOG, "And call emergency stop the server.");
-                            logger.writeLog(null, ERROR_LOG, e.getMessage());
+                            error_log(null, "Server stopped as crash. Trying to reboot server.");
+                            error_log(null, "If you see that cause one more. Please report as that.");
+                            error_log(null, "And call emergency stop the server.");
+                            error_log(null, e.getMessage());
                             try {
                                 dispatcher.runCommand("reboot", null, userManager.getUser("Console"));
                             } catch (CommandException ex) {
-                                logger.writeLog(null, ERROR_LOG, "Can't reboot server at error. Stopping thread.");
-                                logger.writeLog(null, ERROR_LOG, ex.getMessage());
+                                error_log(null, "Can't reboot server at error. Stopping thread.");
+                                error_log(null, ex.getMessage());
                                 System.exit(1);
                             }
                         }

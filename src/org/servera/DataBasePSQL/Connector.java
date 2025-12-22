@@ -8,6 +8,8 @@ import java.sql.SQLException;
 
 import static org.servera.LogArguments.ERROR_LOG;
 import static org.servera.LogArguments.WARN_LOG;
+import static org.servera.LoggerStatement.error_log;
+import static org.servera.LoggerStatement.warn_log;
 
 public class Connector
 {
@@ -15,7 +17,6 @@ public class Connector
     private final String password;
     private final String url;
     protected Connection connection;
-    protected Logger logger = new Logger(this.getClass());
 
     public Connector(String login, String password, String url)
     {
@@ -30,7 +31,7 @@ public class Connector
         try {
             return DriverManager.getConnection(this.url, this.login, this.password);
         } catch (SQLException e) {
-            logger.writeLog(null, ERROR_LOG, "Can't create a connection. That can cause a problem.");
+            error_log(null, "Can't create a connection. That can cause a problem.");
             return null;
         }
     }
@@ -39,7 +40,7 @@ public class Connector
     {
         this.connection = getConnection();
         if(!testConnect()){
-            logger.writeLog(null, WARN_LOG, "Connection is not open. That can cause a problem - " + this.url);
+            warn_log(null, "Connection is not open. That can cause a problem - " + this.url);
         }
         executeConnector.execute(this.connection);
         closeConnection();
@@ -61,8 +62,8 @@ public class Connector
         try {
             this.connection.close();
         } catch (SQLException e) {
-            logger.writeLog(null, ERROR_LOG, "Can't close connection.");
-            logger.writeLog(null, ERROR_LOG, e.getMessage());
+            error_log(null, "Can't close connection.");
+            error_log(null, e.getMessage());
         }
     }
 }
