@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
+import static org.servera.DataBasePSQL.ConnectorManager.getConnect;
 import static org.servera.LogArguments.*;
 import static org.servera.LoggerStatement.*;
 import static org.servera.inheritance.SPermission.PermissionManager.isUserPermission;
@@ -19,11 +20,9 @@ import static org.servera.inheritance.SPermission.PermissionManager.isUserPermis
 public class UserManager
 {
     protected static Map<String, User> userMap = new HashMap<String, User>();
-    protected Connector connector;
 
-    public UserManager(Connector connector){
+    public UserManager(){
         try {
-            this.connector = connector;
             loadUsers();
             log(null, "Loaded success.");
         } catch (SQLException e)
@@ -34,7 +33,7 @@ public class UserManager
 
     private void loadUsers() throws SQLException
     {
-        this.connector.openConnection(connection ->
+        getConnect("UserDataBase").openConnection(connection ->
         {
             try {
                 Statement var = connection.createStatement();
@@ -69,21 +68,19 @@ public class UserManager
 
     public static class UserCommand extends Command
     {
-        protected Connector connector;
         private final Random random = new Random();
         private boolean success = false;
         protected Configuration configuration;
 
-        public UserCommand(String name, Connector connector, Configuration configuration) {
+        public UserCommand(String name, Configuration configuration) {
             super(name, new ArrayList<>(List.of("user", "user.remove", "user.update", "user.create")));
             this.configuration = configuration;
-            this.connector = connector;
         }
 
         @Override
         public boolean run(User user) {
             success = false;
-            this.connector.openConnection(connection -> {
+            getConnect("UserDataBase").openConnection(connection -> {
                 if (!this.getArguments().isEmpty()) {
                     if (this.getArguments().getFirst().toLowerCase(Locale.ROOT).equals("remove")) {
                         if (!(this.getArguments().size() < 2) && isUserPermission(user, "user.remove")) {
@@ -120,7 +117,7 @@ public class UserManager
 
         private void createUser(String name, String[] arguments)
         {
-            this.connector.openConnection((connection) -> {
+            getConnect("UserDataBase").openConnection((connection) -> {
                 try {
                     String var2 = "SELECT count(*) FROM us_users WHERE firstname = '" + name + "'";
                     Statement var3 = connection.createStatement();
@@ -153,7 +150,7 @@ public class UserManager
 
         private void callUpdateUser(String name)
         {
-            this.connector.openConnection(connection ->
+            getConnect("UserDataBase").openConnection(connection ->
             {
                 try{
                     Statement var = connection.createStatement();
@@ -186,7 +183,7 @@ public class UserManager
 
         private void removeUser(String name)
         {
-            this.connector.openConnection(connection ->
+            getConnect("UserDataBase").openConnection(connection ->
             {
                 try{
                     Statement var = connection.createStatement();
@@ -218,7 +215,7 @@ public class UserManager
         static boolean granted;
         private boolean grantUser(String name, String permission, String attribute)
         {
-            this.connector.openConnection(connection ->
+            getConnect("UserDataBase").openConnection(connection ->
             {
                 granted = false;
                 try {

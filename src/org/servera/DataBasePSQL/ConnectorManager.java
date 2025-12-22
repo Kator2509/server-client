@@ -15,18 +15,15 @@ import static org.servera.config.ConfigurationManager.getConfiguration;
 
 public class ConnectorManager
 {
-    protected Map<String, Connector> connectorMap = new HashMap<>();
-    protected ConfigurationManager configurationManager;
+    protected static Map<String, Connector> connectorMap = new HashMap<>();
 
-    public ConnectorManager(ConfigurationManager configurationManager){
-        this.configurationManager = configurationManager;
+    public ConnectorManager(){
         loadConfig();
     }
 
-    public ConnectorManager(Map<String, Connector> connectorMap, ConfigurationManager configurationManager)
+    public ConnectorManager(Map<String, Connector> connectorMap)
     {
-        this.configurationManager = configurationManager;
-        this.connectorMap = connectorMap;
+        ConnectorManager.connectorMap = connectorMap;
         loadConfig();
     }
 
@@ -53,11 +50,11 @@ public class ConnectorManager
         }
     }
 
-    public Connector getConnect(String name)
+    public static Connector getConnect(String name)
     {
-        if (this.connectorMap.containsKey(name))
+        if (connectorMap.containsKey(name))
         {
-            return this.connectorMap.get(name);
+            return connectorMap.get(name);
         }
         error_log(null, "DataBase don't found - " + name + ". That can be cause a problem.");
         return null;

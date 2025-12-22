@@ -12,23 +12,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static org.servera.DataBasePSQL.ConnectorManager.getConnect;
 import static org.servera.LogArguments.*;
 import static org.servera.LoggerStatement.*;
 
 public class PermissionManager
 {
-    private static Connector connector;
     private static boolean result = false;
 
-    public PermissionManager(Connector connector)
-    {
-        PermissionManager.connector = connector;
-    }
+    public PermissionManager(){}
 
     public static boolean isUserPermission(User user, String path)
     {
         result = false;
-        PermissionManager.connector.openConnection(connection ->
+        getConnect("UserDataBase").openConnection(connection ->
         {
             try {
                 Statement var = connection.createStatement();
@@ -63,7 +60,7 @@ public class PermissionManager
     public static boolean isUserHaveGroup(User user, String path)
     {
         result = false;
-        PermissionManager.connector.openConnection(connection ->
+        getConnect("UserDataBase").openConnection(connection ->
         {
             try {
                 Statement var = connection.createStatement();

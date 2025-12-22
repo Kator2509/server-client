@@ -26,11 +26,9 @@ import static org.servera.config.ConfigurationManager.getConfiguration;
 public class AuthListener
 {
     protected Map<Integer, Session> auth;
-    protected ConfigurationManager configurationManager;
 
-    public AuthListener(ConfigurationManager configurationManager){
-        this.configurationManager = configurationManager;
-        ServerAuth auth = new ServerAuth(this.configurationManager);
+    public AuthListener(){
+        ServerAuth auth = new ServerAuth();
     }
 
     private static class ServerAuth
@@ -39,9 +37,9 @@ public class AuthListener
         protected Thread server;
         protected SSLSocket socket;
 
-        public ServerAuth(ConfigurationManager configurationManager)
+        public ServerAuth()
         {
-            this.keyStore = new ServerKeyStore(configurationManager);
+            this.keyStore = new ServerKeyStore();
         }
 
         private boolean isServer()
@@ -65,7 +63,7 @@ public class AuthListener
             protected SecretKey key;
             protected char[] password;
 
-            public ServerKeyStore(ConfigurationManager configurationManager)
+            public ServerKeyStore()
             {
                 try{
                     this.store = KeyStore.getInstance("JCEKS");
@@ -76,7 +74,7 @@ public class AuthListener
                         this.password = generateKeyPassword().toString().toCharArray();
                     }
                     else {
-                        this.password = this.loadPWD(configurationManager);
+                        this.password = this.loadPWD();
                     }
                     this.initializeStore();
                 } catch (KeyStoreException | NoSuchAlgorithmException | ConfigException e) {
@@ -85,7 +83,7 @@ public class AuthListener
                 }
             }
 
-            private char[] loadPWD(ConfigurationManager configurationManager)
+            private char[] loadPWD()
             {
                 try {
                     return getConfiguration("config").getDataPath("certificate-password").toString().toCharArray();

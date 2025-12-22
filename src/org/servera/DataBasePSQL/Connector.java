@@ -40,7 +40,7 @@ public class Connector
     {
         this.connection = getConnection();
         if(!testConnect()){
-            warn_log(null, "Connection is not open. That can cause a problem - " + this.url);
+            warn_log(null, "Connection is not open. That can cause a problem -> " + this.url);
         }
         executeConnector.execute(this.connection);
         closeConnection();

@@ -67,7 +67,7 @@ public class CommandDispatcher implements Dispatcher
     {
         this.register(new Server.ShutDown("shutdown", new ArrayList<>(List.of("System.shutdown"))));
         this.register(new Server.callReboot("reboot", new ArrayList<>(List.of("System.reboot"))));
-        this.register(new UserManager.UserCommand("user", connectorManager.getConnect("UserDataBase"),
+        this.register(new UserManager.UserCommand("user",
                 getConfiguration("config")));
         this.register(new PermissionManager.PermissionCMD("permission", connectorManager.getConnect("UserDataBase")));
         log(null, "Registered system commands.");
@@ -100,6 +100,7 @@ public class CommandDispatcher implements Dispatcher
             if(isUserPermission(user, command.getPermission().getFirst()) || isUserHaveGroup(user, command.getPermission().getFirst())) {
                 if (!executeCommand(command, user))
                 {
+                    warn_log(null, "User -> " + user.getFirstName() + ":" + user.getUUID() + " trying to send command.");
                     warn_log(null, "Can't execute command - " + name);
                     try {
                         log(null, "FAQ - " + name + "\n" + configuration.getDataPath(foundCommand(name)));

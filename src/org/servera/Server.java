@@ -10,8 +10,11 @@ import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
 import org.servera.inheritance.auth.AuthListener;
+import org.servera.inheritance.auth.Session;
+import org.servera.inheritance.auth.SessionManager;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.*;
@@ -29,6 +32,7 @@ public class Server
     protected static ConnectorManager connectorManager;
     protected static PermissionManager permissionManager;
     protected static ConfigurationFileManager configurationFileManager;
+    protected static SessionManager sessionManager;
     protected static AuthListener authListener;
     protected static Thread serverThread;
 
@@ -43,17 +47,18 @@ public class Server
             error_log(null, "Can't get access or correctly format from config.yml.");
             error_log(null, e.getMessage());
         }
-        connectorManager = new ConnectorManager(configurationManager);
+        connectorManager = new ConnectorManager();
 
-        userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
+        userManager = new UserManager();
 
-        permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"));
-        authListener = new AuthListener(configurationManager);
+        permissionManager = new PermissionManager();
+        authListener = new AuthListener();
         dispatcher = new CommandDispatcher(getConfiguration("language"), permissionManager, userManager, connectorManager, configurationManager);
 
         /*
         * TEST - ZONE
         * */
+
 
 
         /*
@@ -79,12 +84,12 @@ public class Server
 
             configurationFileManager = new ConfigurationFileManager();
             configurationManager = new ConfigurationManager();
-            connectorManager = new ConnectorManager(configurationManager);
+            connectorManager = new ConnectorManager();
 
-            userManager = new UserManager(connectorManager.getConnect("UserDataBase"));
+            userManager = new UserManager();
 
-            permissionManager = new PermissionManager(connectorManager.getConnect("UserDataBase"));
-            authListener = new AuthListener(configurationManager);
+            permissionManager = new PermissionManager();
+            authListener = new AuthListener();
             dispatcher = new CommandDispatcher(getConfiguration("language"), permissionManager, userManager, connectorManager, configurationManager);
             ServerExecute.reboot();
             return true;
