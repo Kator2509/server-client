@@ -55,7 +55,6 @@ public class AuthListener
 
         protected static class ServerKeyStore
         {
-            protected Logger logger = new Logger();
             protected final String systemPath = Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().substring(0,
                     Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1);
             protected KeyStore store;
