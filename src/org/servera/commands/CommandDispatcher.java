@@ -13,42 +13,22 @@ import static org.servera.LoggerStatement.*;
 import static org.servera.config.ConfigurationManager.getConfiguration;
 import static org.servera.inheritance.SPermission.PermissionManager.isUserHaveGroup;
 import static org.servera.inheritance.SPermission.PermissionManager.isUserPermission;
+import static org.servera.inheritance.UserManager.getUser;
 
 public class CommandDispatcher implements Dispatcher
 {
     protected Map<String, Command> commandMap = new HashMap<>();
-    protected PermissionManager permissionManager;
-    protected UserManager userManager;
     protected ServerDispatcher dispatcher;
 
-    public CommandDispatcher(PermissionManager permissionManager, UserManager userManager){
-        this.permissionManager = permissionManager;
-        this.userManager = userManager;
-        if (this.permissionManager != null)
-        {
-            log(null, "Permission loaded success.");
-        }
-        else
-        {
-            warn_log(null, "Permission not loaded. That can cause a problem.");
-        }
+    public CommandDispatcher(){
         registerDefault();
-        this.dispatcher = new ServerDispatcher(this, this.userManager);
+        this.dispatcher = new ServerDispatcher(this);
         log(null, "Loaded success.");
     }
 
-    public CommandDispatcher(Map<String, Command> commandMap, PermissionManager permissionManager)
+    public CommandDispatcher(Map<String, Command> commandMap)
     {
         this.commandMap = commandMap;
-        this.permissionManager = permissionManager;
-        if (this.permissionManager != null)
-        {
-            log(null, "Permission loaded success.");
-        }
-        else
-        {
-            warn_log(null, "Permission not loaded. That can cause a problem.");
-        }
         log(null, "Loaded success.");
     }
 
@@ -133,7 +113,8 @@ public class CommandDispatcher implements Dispatcher
 
     private boolean executeCommand(Command command, User user)
     {
-        log(null, "Executed command - " + command.getName());
+        log(null, "Executed command -> " + command.getName());
+        log(null, "By user -> " + user.getFirstName());
         return command.run(user);
     }
 
@@ -141,8 +122,6 @@ public class CommandDispatcher implements Dispatcher
     {
         this.dispatcher.callStop();
         this.commandMap = null;
-        this.permissionManager = null;
-        this.userManager = null;
     }
 
     private static class ServerDispatcher
@@ -156,7 +135,7 @@ public class CommandDispatcher implements Dispatcher
             run = false;
         }
 
-        public ServerDispatcher(Dispatcher dispatcher, UserManager userManager)
+        public ServerDispatcher(Dispatcher dispatcher)
         {
             dispatcher_core = new Thread(new Runnable() {
 
@@ -174,7 +153,7 @@ public class CommandDispatcher implements Dispatcher
                         var command = "";
                         var i = 0;
 
-                        System.out.print(userManager.getUser("Console").getFirstName() + ":~$ ");
+                        System.out.print(getUser("Console").getFirstName() + ":~$ ");
                         for (String arguments : entry.nextLine().split(" ")) {
                             if (i == 0) {
                                 command = arguments;
@@ -185,7 +164,7 @@ public class CommandDispatcher implements Dispatcher
                         }
 
                         try {
-                            dispatcher.runCommand(command, var0, userManager.getUser("Console"));
+                            dispatcher.runCommand(command, var0, getUser("Console"));
                         } catch (CommandException e) {
                             error_log(null, "Command running with errors.");
                             error_log(null, e.getMessage());

@@ -44,7 +44,7 @@ public class SessionManager
             session.getAddress().isReachable(400);
             active_session.put(Arrays.toString(address.getAddress()), session);
             debug_log(null, "Putting session in active. Start creating session on Data Base.");
-            create_date_base_session(user);
+            create_date_base_session(user, address);
             return true;
         } catch (IOException | NullPointerException e) {
             error_log(null, e.getMessage());
@@ -52,9 +52,9 @@ public class SessionManager
         }
     }
 
-    private void create_date_base_session(User user)
+    private void create_date_base_session(User user, Inet4Address address)
     {
-        var request = "INSERT INTO US_SESSION (US_UUID, US_STATUS) VALUES ('" + user.getUUID() + "', '1')";
+        var request = "INSERT INTO US_SESSION (US_UUID, US_STATUS, ADDRESS) VALUES ('" + user.getUUID() + "', '1', " + address + ")";
 
         getConnect("UserDataBase").openConnection(connection -> {
             try {

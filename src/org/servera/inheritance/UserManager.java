@@ -56,7 +56,7 @@ public class UserManager
         });
     }
 
-    public User getUser(String name)
+    public static User getUser(String name)
     {
         if (!userMap.containsKey(name))
         {

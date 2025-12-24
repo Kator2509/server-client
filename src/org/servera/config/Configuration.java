@@ -63,7 +63,7 @@ public class Configuration implements ConfigurationInterface
     }
 
     @Override
-    public List<String> getKeyDataList(String container) throws ConfigException {
+    public List<String> getKeyDataList(String container) {
         Object var = this.data.get(container.split("\\.")[0]), var1 = null;
         int i = 1;
         if(container.split("\\.").length > 1)
@@ -76,8 +76,8 @@ public class Configuration implements ConfigurationInterface
         }
         if (var == null && var1 == null)
         {
-            error_log(null, new ConfigException("Can't get a key list. var or var1 empty.").getMessage());
-            throw new ConfigException("Can't get a key list. var or var1 empty.");
+            error_log(null, "Can't get a key list. var or var1 empty.");
+            return null;
         }
         return container.split("\\.").length > 1 ? ((HashMap<String, Object>) var1).keySet().stream().toList()
                 : ((HashMap<String, Object>) var).keySet().stream().toList();
@@ -102,8 +102,8 @@ public class Configuration implements ConfigurationInterface
         }
         if (var == null && var1 == null)
         {
-            error_log(null, new ConfigException("Can't get a key list. var or var1 empty.").getMessage());
-            throw new ConfigException("Can't get a key list. var or var1 empty.");
+            error_log(null, "Can't get a key list. var or var1 empty.");
+            return null;
         }
         return container.split("\\.").length > 1 ? var1 : var;
     }

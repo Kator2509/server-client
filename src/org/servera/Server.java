@@ -10,11 +10,9 @@ import org.servera.inheritance.SPermission.PermissionManager;
 import org.servera.inheritance.User;
 import org.servera.inheritance.UserManager;
 import org.servera.inheritance.auth.AuthListener;
-import org.servera.inheritance.auth.Session;
 import org.servera.inheritance.auth.SessionManager;
 
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.*;
@@ -52,8 +50,9 @@ public class Server
         userManager = new UserManager();
 
         permissionManager = new PermissionManager();
+        sessionManager = new SessionManager();
         authListener = new AuthListener();
-        dispatcher = new CommandDispatcher(permissionManager, userManager);
+        dispatcher = new CommandDispatcher();
 
         /*
         * TEST - ZONE
@@ -90,7 +89,7 @@ public class Server
 
             permissionManager = new PermissionManager();
             authListener = new AuthListener();
-            dispatcher = new CommandDispatcher(permissionManager, userManager);
+            dispatcher = new CommandDispatcher();
             ServerExecute.reboot();
             return true;
         }
