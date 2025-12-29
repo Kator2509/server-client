@@ -127,7 +127,7 @@ public class CommandDispatcher implements Dispatcher
     private static class ServerDispatcher
     {
         protected Thread dispatcher_core;
-        protected boolean run = true;
+        protected boolean run;
 
         public void callStop()
         {
@@ -137,6 +137,7 @@ public class CommandDispatcher implements Dispatcher
 
         public ServerDispatcher(Dispatcher dispatcher)
         {
+            run = true;
             dispatcher_core = new Thread(new Runnable() {
 
                 public boolean isRun()

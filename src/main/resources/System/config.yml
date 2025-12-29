@@ -3,5 +3,7 @@ max-size-tab: 7 #Max size tab num 16 or change parm database to set a more size 
 language: "Ru-ru" #Using language.
 crypto-size: 1024
 crypto-password: ""
+port: 6060
+time-out: 400
 debug: false
 log-out-date: 10

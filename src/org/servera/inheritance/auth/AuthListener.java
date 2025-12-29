@@ -1,14 +1,14 @@
 package org.servera.inheritance.auth;
 
-import org.servera.Logger;
 import org.servera.Server;
 import org.servera.config.ConfigException;
-import org.servera.config.ConfigurationManager;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.net.ssl.*;
 import java.io.*;
+import java.net.Socket;
+import java.net.SocketException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Map;
@@ -23,26 +23,76 @@ import static org.servera.inheritance.auth.AuthListener.ServerAuth.ServerTrustSt
 public class AuthListener extends SessionManager
 {
     protected Map<Integer, Session> auth;
+    protected ServerAuth server;
 
     public AuthListener(){
         super();
-        ServerAuth auth = new ServerAuth();
+        this.server = new ServerAuth();
     }
 
-    static class ServerAuth
+    public void close()
+    {
+        this.server.callStop();
+        this.auth = null;
+        log(null, "Server auth is closing.");
+    }
+
+    protected static class ServerAuth
     {
         protected Thread server;
         protected static ServerKeyStore keyStore;
-        protected SSLSocket socket;
+        protected SSLServerSocket socket;
+        protected Boolean run = false;
+        protected Thread listener;
+
+        public void callStop()
+        {
+            run = false;
+        }
 
         public ServerAuth(){
             keyStore = new ServerKeyStore();
-            new Thread(new Runnable() {
+            log(null, "Launch auth server with session manager.");
+            launch();
+            run = true;
+            listener = new Thread(new Runnable() {
+                public boolean isRun()
+                {
+                    return run;
+                }
+
                 @Override
                 public void run() {
-
+                    while (isRun())
+                    {
+                        try {
+                            socket.setSoTimeout((Integer) getConfiguration("config").getDataPath("time-out"));
+                            Socket var = socket.accept();
+                            if (var.isConnected())
+                            {
+                                log(null, "User from ip-address -> " + var.getInetAddress() + " with using a user name.");
+                            }
+                        } catch (IOException | ConfigException ignore){}
+                    }
                 }
             });
+            listener.start();
+        }
+
+        protected void launch()
+        {
+            if (!Objects.equals(getContext(), null)) {
+                SSLServerSocketFactory ssf = getContext().getServerSocketFactory();
+                try {
+                    socket = (SSLServerSocket) ssf.createServerSocket((Integer) getConfiguration("config").getDataPath("port"));
+                } catch (IOException | ConfigException e) {
+                    error_log(null, e.getMessage());
+                }
+            }
+            else
+            {
+                warn_log(null, "SSL context is null.");
+            }
         }
 
         public static SSLContext getContext()
@@ -57,7 +107,6 @@ public class AuthListener extends SessionManager
                 tmf.init(getTrustStore());
 
                 context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-
 
                 return context;
             } catch (NoSuchAlgorithmException | ConfigException | KeyStoreException | UnrecoverableKeyException |
@@ -78,9 +127,17 @@ public class AuthListener extends SessionManager
                 try {
                     store = KeyStore.getInstance("JCEKS");
 
+                    if (password.length == 0)
+                    {
+                        warn_log(null, "Detected a null password. Don't load a Trust store.");
+                        debug_log(null, "Starting creating a new trust store with new password from Server store in next launch after filling a crypto-password.");
+                    } else if(password.length > 1 && new File(systemPath + "truststore.jks").exists())
+                    {
+
+                    }
                     //Требуется дописать структуру загрузки доверенных сертификатов.
                 } catch (KeyStoreException e) {
-                    throw new RuntimeException(e);
+                    error_log(null, e.getMessage());
                 }
             }
 
@@ -115,7 +172,6 @@ public class AuthListener extends SessionManager
                 } catch (KeyStoreException | NoSuchAlgorithmException | ConfigException e) {
                     error_log(null, "Can't initialize a key store!");
                     error_log(null, e.getMessage());
-                    error_log(null, "Trying to load a new PWD.");
                 }
             }
 

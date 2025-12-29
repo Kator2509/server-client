@@ -12,9 +12,6 @@ import org.servera.inheritance.UserManager;
 import org.servera.inheritance.auth.AuthListener;
 import org.servera.inheritance.auth.SessionManager;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.SocketTimeoutException;
 import java.util.*;
 
 import static org.servera.Logger.logIsOverload;
@@ -63,9 +60,6 @@ public class Server
         /*
          * TEST - ZONE
          * */
-
-        Run = true;
-        ServerExecute.run();
     }
 
     public static class callReboot extends Command
@@ -90,7 +84,6 @@ public class Server
             permissionManager = new PermissionManager();
             authListener = new AuthListener();
             dispatcher = new CommandDispatcher();
-            ServerExecute.reboot();
             return true;
         }
     }
@@ -104,6 +97,7 @@ public class Server
         @Override
         public boolean run(User user) {
             Run = false;
+            authListener.close();
             dispatcher.close();
             permissionManager = null;
             userManager = null;
@@ -112,62 +106,5 @@ public class Server
             configurationManager = null;
             return true;
         }
-    }
-
-        private static class ServerExecute
-        {
-            private static boolean callReboot = false;
-
-            private static void reboot()
-            {
-                callReboot = true;
-            }
-
-            private static void run()
-            {
-                serverThread = new Thread(new Runnable(){
-                    @Override
-                    public void run() {
-                        try(ServerSocket server = new ServerSocket(25565)) {
-                            while(isRun() && !callReboot)
-                            {
-                                //Server thread code. Connection with client. Need override for login manager and SSLServerSocket.
-                                server.setSoTimeout(150);
-
-
-
-                            }
-                            if(!isRun())
-                            {
-                                log(null, "Server closed.");
-                            }
-                        } catch (SocketTimeoutException ignore) {}
-                        catch (IOException e) {
-                            error_log(null, "Server stopped as crash. Trying to reboot server.");
-                            error_log(null, "If you see that cause one more. Please report as that.");
-                            error_log(null, "And call emergency stop the server.");
-                            error_log(null, e.getMessage());
-                            try {
-                                dispatcher.runCommand("reboot", null, userManager.getUser("Console"));
-                            } catch (CommandException ex) {
-                                error_log(null, "Can't reboot server at error. Stopping thread.");
-                                error_log(null, ex.getMessage());
-                                System.exit(1);
-                            }
-                        }
-                        if (callReboot)
-                        {
-                            callReboot = false;
-                            run();
-                        }
-                    }
-                });
-                serverThread.start();
-            }
-    }
-
-    public static boolean isRun()
-    {
-        return Run;
     }
 }
