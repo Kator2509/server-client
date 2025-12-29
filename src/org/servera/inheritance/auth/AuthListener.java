@@ -9,6 +9,7 @@ import javax.net.ssl.*;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Map;
@@ -72,7 +73,11 @@ public class AuthListener extends SessionManager
                             {
                                 log(null, "User from ip-address -> " + var.getInetAddress() + " with using a user name.");
                             }
-                        } catch (IOException | ConfigException ignore){}
+                        } catch (SocketException ignore) {} catch (ConfigException e) {
+                            warn_log(null, e.getMessage());
+                        } catch (IOException e) {
+                            error_log(null, e.getMessage());
+                        }
                     }
                 }
             });
