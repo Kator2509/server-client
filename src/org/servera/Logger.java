@@ -14,7 +14,7 @@ public class Logger
 {
     protected static String pathToSystem;
 
-    public Logger()
+    public static void logger_create_directory()
     {
         pathToSystem = Server.class.getProtectionDomain().getCodeSource().getLocation().getPath()
                 .substring(0, Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "log" + File.separator;
@@ -22,7 +22,7 @@ public class Logger
         logIsHave(null);
     }
 
-    public Logger(String name)
+    public static void logger_create_directory(String name)
     {
         pathToSystem = Server.class.getProtectionDomain().getCodeSource().getLocation().getPath()
                 .substring(0, Server.class.getProtectionDomain().getCodeSource().getLocation().getPath().lastIndexOf(File.separator) + 1) + "log" + File.separator;
@@ -30,7 +30,7 @@ public class Logger
         logIsHave(name);
     }
 
-    public Logger(String customPath, String name)
+    public static void logger_create_directory(String customPath, String name)
     {
         pathToSystem = customPath + File.separator + "log" + File.separator;
         new File(pathToSystem).mkdir();
@@ -89,7 +89,7 @@ public class Logger
         }
     }
 
-    private void logIsHave(String name)
+    private static void logIsHave(String name)
     {
         try {
             if(Objects.equals(name, null))

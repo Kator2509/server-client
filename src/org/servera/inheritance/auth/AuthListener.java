@@ -2,6 +2,8 @@ package org.servera.inheritance.auth;
 
 import org.servera.Server;
 import org.servera.config.ConfigException;
+import org.servera.config.FileManager.JSONParser;
+import org.servera.inheritance.User;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -49,6 +51,11 @@ public class AuthListener extends SessionManager
         public void callStop()
         {
             run = false;
+            try {
+                socket.close();
+            } catch (IOException e) {
+                log(null, e.getMessage());
+            }
         }
 
         public ServerAuth(){
@@ -62,22 +69,38 @@ public class AuthListener extends SessionManager
                     return run;
                 }
 
+                public boolean isAuth(User user)
+                {
+                    //Создание логики проверки на авторизацию и отправки пакета на сервер.
+                    return false;
+                }
+
+                /*
+                * Требовательно создать следующую логику архитектуры.
+                * Подключение -> Авторизация -> Проверка на выполнение -> Подключение к консоли или отправка пакета.
+                * */
+
                 @Override
                 public void run() {
                     while (isRun())
                     {
                         try {
                             socket.setSoTimeout((Integer) getConfiguration("config").getDataPath("time-out"));
-                            Socket var = socket.accept();
+                            SSLSocket var = (SSLSocket) socket.accept();
                             if (var.isConnected())
                             {
-                                log(null, "User from ip-address -> " + var.getInetAddress() + " with using a user name.");
+                                //Требуется изменения на парсировку пакета JSON-объекта для получения учетных данных пользователя
+                                if (isAuth(null)) {
+                                    log(null, "User from ip-address -> " + var.getInetAddress() + " with using a user name.");
+                                }
+                                else
+                                {
+                                    warn_log(null, "Something trying to connecting from ip-address -> " + var.getInetAddress());
+                                }
                             }
-                        } catch (SocketException ignore) {} catch (ConfigException e) {
+                        } catch (SocketException | ConfigException e) {
                             warn_log(null, e.getMessage());
-                        } catch (IOException e) {
-                            error_log(null, e.getMessage());
-                        }
+                        } catch (IOException ignore) {}
                     }
                 }
             });

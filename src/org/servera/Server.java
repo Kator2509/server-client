@@ -3,7 +3,6 @@ package org.servera;
 import org.servera.DataBasePSQL.ConnectorManager;
 import org.servera.commands.Command;
 import org.servera.commands.CommandDispatcher;
-import org.servera.commands.CommandException;
 import org.servera.config.ConfigurationManager;
 import org.servera.config.FileManager.ConfigurationFileManager;
 import org.servera.inheritance.SPermission.PermissionManager;
@@ -15,6 +14,7 @@ import org.servera.inheritance.auth.SessionManager;
 import java.util.*;
 
 import static org.servera.Logger.logIsOverload;
+import static org.servera.Logger.logger_create_directory;
 import static org.servera.LoggerStatement.*;
 import static org.servera.config.ConfigurationManager.getConfiguration;
 
@@ -29,10 +29,10 @@ public class Server
     protected static ConfigurationFileManager configurationFileManager;
     protected static SessionManager sessionManager;
     protected static AuthListener authListener;
-    protected static Thread serverThread;
 
     public static void main(String[] args)
     {
+        logger_create_directory();
         log(null, "Server starting loading...");
         configurationFileManager = new ConfigurationFileManager();
         configurationManager = new ConfigurationManager();
@@ -71,18 +71,15 @@ public class Server
         public boolean run(User user) {
 
             dispatcher.close();
-            //Требуется перепись всех ядер и создание уникальных завершений, чтобы каждый поток ожидал завершения того или иного процесса. Дабы избежать крашей и ошибок системы.
-            //Так же создать синхронную загрузку, чтобы один модуль дожидался загрузки другого и избежать критических ошибок и проблем.
+            authListener.close();
 
 
+            authListener = new AuthListener();
             configurationFileManager = new ConfigurationFileManager();
             configurationManager = new ConfigurationManager();
             connectorManager = new ConnectorManager();
-
-            userManager = new UserManager();
-
             permissionManager = new PermissionManager();
-            authListener = new AuthListener();
+            userManager = new UserManager();
             dispatcher = new CommandDispatcher();
             return true;
         }
